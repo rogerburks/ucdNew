@@ -7,12 +7,21 @@
         <button class="btn btn-outline-secondary" type="button" id="binomial-search-button" @click="useInputTerms($event)">search</button>
     </div>
     
-    <div id = "search-terms-display">
+    <!-- <div id = "search-terms-display">
       <span id = "search-string-preface">Search terms: </span> <span v-show="genus"> genus = <i>{{ genus }}</i></span> <span v-show="species">and species = <i>{{ species }}</i></span>
     </div>
+    -->
+    
+    <!--
+    <div>
+      <span id = "api-results">The results are: <i>{{ cached }}</i>  {{ cached_author_year }}</span>
+    </div>
+    -->
     
     <div>
-      <span id = "api-results">The results are: {{ taxonName }}</span>
+      <span id = "api-results-list"><br>
+      <li style="list-style-type:none" v-for="(item, index) in apiResults" :key="item.id"><i>{{ apiResults[index].cached }}</i> {{ apiResults[index].cached_author_year }}</li>
+      </span>
     </div>
 </template>
 
@@ -48,50 +57,39 @@ export default {
   },
   
   setup() {
-    //variables are made reactive here
-    let genus = ref('')
-    let species = ref('')
-    let apiResults = ref([])
-    let taxonName = ref('')
-    //let id = ref('')
-    //let name = ref('')
-    
-    return { genus, species, apiResults, taxonName }
+    //variables are made reactive or ref here
+    return {genus: ref(''),
+            species: ref(''),
+            apiResults: ref([{}])
+            }
     
   },
   
   methods: {
-    useInputTerms(e) {      
+    useInputTerms(genus, species) {
       //console.log(this.genus);
       //console.log(this.species);
       
       if(this.genus && this.species){
         this.genus = this.genus.replace(/^./, this.genus[0].toUpperCase());
-        this.species = this.species.replace(/^./, this.species[0].toLowerCase());
+        this.species = this.species.replace(/./, this.species[0].toLowerCase());
         this.apiResults = axios
       .get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '%20' + this.species + '&validity=true&exact=true&token=ygjruflw1wvXStL4DboIYg&project_token=adhBi59dc13U7RxbgNE5HQ')
-      .then((response) => {
-        console.log(response.data[0].cached)
-        })
+      .then(response => {(this.apiResults = response.data)})
       .catch(error => console.log(error))
       }
       else if(this.genus){
         this.genus = this.genus.replace(/^./, this.genus[0].toUpperCase());
         this.apiResults = axios
-      .get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '&validity=true&exact=true&token=ygjruflw1wvXStL4DboIYg&project_token=adhBi59dc13U7RxbgNE5HQ')
-      .then(response => {
-        (this.taxonName = response.data[0].cached)
-        console.log(response.data[0].name)
-        })
-      .catch(error => console.log(error))
+        .get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '&validity=true&exact=true&token=ygjruflw1wvXStL4DboIYg&project_token=adhBi59dc13U7RxbgNE5HQ')
+        .then(response => {(this.apiResults = response.data)})
+        .catch(error => console.log(error))
       }
       else if(this.species){
         this.species = this.species.replace(/^./, this.species[0].toLowerCase());
         this.apiResults = axios
       .get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.species + '&token=ygjruflw1wvXStL4DboIYg&project_token=adhBi59dc13U7RxbgNE5HQ')
-      .then((response) => {
-        console.log(response.data[0].cached)
-        })
+      .then(response => {(this.apiResults = response.data)})
       .catch(error => console.log(error))
       }
     }
