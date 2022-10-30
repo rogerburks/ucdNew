@@ -1,19 +1,21 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import HomePage from './components/HomePage.vue';
+import BinomialSearch from './components/BinomialSearch.vue';
 </script>
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+    <!-- <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125
+  components: { search }," />
+  /-->
 
     <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+      <HomePage msg="Universal Chalcidoidea Database" />
     </div>
   </header>
-
+<br>
   <main>
-    <TheWelcome />
+    <BinomialSearch />
   </main>
 </template>
 
@@ -41,7 +43,7 @@ header {
   header .wrapper {
     display: flex;
     place-items: flex-start;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
 }
 </style>
