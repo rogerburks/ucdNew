@@ -1,6 +1,8 @@
 <!-- in vue.js, ideally displayed information should be reactive and a single page should handle as much as possible-->
 <!-- This component handles searches and displays search results -->
 <!-- //To do: add checkbox switch for including or excluding OTUs from the nomenclature search -->
+<!-- Why is there a maximum of 25 results returned by the api?  -->
+<!-- Stop italicizing family-group names in returned results  -->
 <template>
     <div class="input-group mb-3" id="binomial-search-group">
         <span class="input-group-text" id="genus-input-label">genus</span>
@@ -87,14 +89,14 @@ export default {
         this.genus = this.genus.replace(/^./, this.genus[0].toUpperCase());
         this.species = this.species.replace(/./, this.species[0].toLowerCase());
         this.apiResults = axios
-      .get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '%20' + this.species + '&validity=true&exact=true&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
+      .get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '%20' + this.species + '&validity=true&per=1000&exact=true&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
       .then(response => {(this.apiResults = response.data)})
       .catch(error => console.log(error))
       }
       else if(this.genus){
         this.genus = this.genus.replace(/^./, this.genus[0].toUpperCase());
         this.apiResults = axios
-        .get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '&validity=true&exact=false&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
+        .get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '&validity=true&per=1000&exact=false&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
         .then(response => {
           this.apiResults = response.data
           this.sortResponse()
