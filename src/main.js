@@ -4,12 +4,12 @@ import App from './App.vue'
 import HomePage from './components/HomePage.vue'
 import BinomialSearch from './components/BinomialSearch.vue'
 import TaxonPage from './components/TaxonPage.vue'
+import SearchResults from './components/SearchResults.vue'
 
 import './assets/main.css'
 
 //import bootstrap for responsive visual controls
 import "bootstrap/dist/css/bootstrap.min.css"
-import "bootstrap"
 
 const routes = [{
         path: '/',
@@ -26,6 +26,11 @@ const routes = [{
         name: 'TaxonPage',
         component: TaxonPage,
         props: true
+    },
+    {
+        path: '/taxonResults',
+        name: 'TaxonSearchResults',
+        component: SearchResults
     }
 ]
 
@@ -34,15 +39,6 @@ const router = createRouter({
     routes
 })
 
-//Vue.use(VueRouter)
-
-//createApp(App).mount('#app')
-
 const app = createApp(App)
 app.use(router)
 app.mount('#app')
-
-//new Vue({
-//    router,
-//    render: h => h(App)
-//}).$mount('#app')

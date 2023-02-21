@@ -1,7 +1,9 @@
-<template>
-    <div>
-      <h1 v-if="italicized"><i>{{ this.taxonViewed[0].cached }}</i> {{ this.taxonViewed[0].cached_author_year }}</h1>
-      <h1 v-else>{{ this.taxonViewed[0].cached }} {{ this.taxonViewed[0].cached_author_year }}</h1>
+<template v-slot:taxonPage>
+    <div class = "row">
+      <div class="col-12">
+        <h3 v-if="italicized"><i>{{ this.taxonViewed[0].cached }}</i> {{ this.taxonViewed[0].cached_author_year }}</h3>
+        <h3 v-else>{{ this.taxonViewed[0].cached }} {{ this.taxonViewed[0].cached_author_year }}</h3>
+      </div>
     </div>
   </template>
   
@@ -12,12 +14,9 @@
   export default {
     setup() {
     //variables are made reactive or ref here
-      var taxonPageApiResults = ref([{}])
-      var taxonViewed = ref([{}])
-        
       return {
-        taxonPageApiResults,
-        taxonViewed
+        taxonPageApiResults: ref([{}]),
+        taxonViewed: ref([{}])
       }
     },
     

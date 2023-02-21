@@ -7,32 +7,30 @@ import LinkRow from './components/LinkRow.vue';
 
 <template>
   <header>
-    <!-- <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125
-  components: { search }," />
-  /-->
-    <div class="wrapper">
-      <HomePage msg="Universal Chalcidoidea Database" />
-    </div>
+    <HomePage msg="Universal Chalcidoidea Database" />
   </header>
-<br>
-  <body>
-    <!--Need to put banner here-->
-    <LinkRow />
-    <!--Need to put page position here-->
-    <!--visit history needs to be a column on the left-->
-    <BinomialSearch />
-  </body>
+
+  <br>
+  <div class="row">
+    <div class = "col-12" name="bannerContainer">
+      <!--Need to put banner here-->
+    </div>
+    <div class="col-12" name="linkRowContainer">
+      <slot name="linkRow"></slot>
+      <LinkRow />
+    </div>
+    <div class="col-12" name="contentContainer">
+      <!--Need to put page position here-->
+      <!--visit history needs to be a column on the left-->
+      <slot name="search"></slot>
+      <slot name="taxonPage"></slot>
+    </div>
+  </div>
 </template>
 
 <style scoped>
 header {
   line-height: 1.5;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
 }
 
 .logo {
