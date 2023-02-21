@@ -1,6 +1,8 @@
 <script setup>
 import HomePage from './components/HomePage.vue';
 import BinomialSearch from './components/BinomialSearch.vue';
+import TaxonPage from './components/TaxonPage.vue';
+import LinkRow from './components/LinkRow.vue';
 </script>
 
 <template>
@@ -8,20 +10,29 @@ import BinomialSearch from './components/BinomialSearch.vue';
     <!-- <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125
   components: { search }," />
   /-->
-
     <div class="wrapper">
       <HomePage msg="Universal Chalcidoidea Database" />
     </div>
   </header>
 <br>
-  <main>
+  <body>
+    <!--Need to put banner here-->
+    <LinkRow />
+    <!--Need to put page position here-->
+    <!--visit history needs to be a column on the left-->
     <BinomialSearch />
-  </main>
+  </body>
 </template>
 
 <style scoped>
 header {
   line-height: 1.5;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .logo {
