@@ -57,39 +57,34 @@ export default {
   
   methods: {
     //this handles button presses for nomenclature searches
-    useInputTerms(e) {
+    async useInputTerms(e) {
       //console.log(this.genus);
       //console.log(this.species);
       //If a genus and a species are entered, this functions as an exact search. If only a genus or a species is entered, it returns whatever matches
       if(this.genus && this.species){
         this.genus = this.genus.replace(/^./, this.genus[0].toUpperCase());
         this.species = this.species.replace(/./, this.species[0].toLowerCase());
-        this.apiResults = axios
-      .get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '%20' + this.species + '&validity=true&per=250&exact=true&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
-      .then(response => {(this.apiResults = response.data)})
-      .catch(error => console.log(error))
+        const response = await axios.get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '%20' + this.species + '&validity=true&per=250&exact=true&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
+        this.apiResults = response.data
+        //catch(error => console.log(error))
       }
       else if(this.genus){
         this.genus = this.genus.replace(/^./, this.genus[0].toUpperCase());
         this.apiResults = axios
-        .get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '&validity=true&per=250&exact=false&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
-        .then(response => {
-          this.apiResults = response.data
-          this.sortResponse()
-          }
-        )
-        .catch(error => console.log(error))
+        const response = await axios.get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '&validity=true&per=250&exact=false&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
+        this.apiResults = response.data
+        this.sortResponse()
+        //catch(error => console.log(error))
       }
       else if(this.species){
         this.species = this.species.replace(/^./, this.species[0].toLowerCase());
         this.apiResults = axios
-      .get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.species + '&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
-      .then(response => {
+        const response = await axios.get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.species + '&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
+        response => {
           this.apiResults = response.data
           this.sortResponse()
-          }
-        )
-      .catch(error => console.log(error))
+        }
+      //.catch(error => console.log(error))
       }
       this.$refs['taxonPageNameItalicized'].textContent = ''
       this.$refs['taxonPageNameAuthorYear'].textContent = ''
