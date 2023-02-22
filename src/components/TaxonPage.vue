@@ -5,19 +5,45 @@
         <h3 v-else>{{ this.taxonViewed[0].cached }} {{ this.taxonViewed[0].cached_author_year }}</h3>
       </div>
     </div>
+    <br>
+    <div class="row" ref="containerOfSynonyms" name="taxonPageSynonymsContainer">
+      <div class="col-12 bd-highlight align-items-start" id="results-list-div" ref="resultsList">
+        <ul id="results-list-span">
+          <li style="list-style-type:none" v-for="tag in synonymTags" v-html="tag"></li>
+        </ul>
+      </div>
+    </div>
   </template>
   
 <script>
   import axios from "axios"
   import { computed, ref, reactive } from '@vue/runtime-core'
   
+  var synonymItem = ref("");
+  var synonymHtml = ref("");
+  var synonymTags = ref([{}]);
+  
   export default {
     setup() {
-    //variables are made reactive or ref here
+      //variables are made reactive or ref here      
+      const taxonPageApiResults = ref([{}]);
+      const taxonViewed = ref([{}]);
+      const relationshipsResponse = ref([{}]);
+      const synonyms = ref([{}]);
+      const sortedSynonyms = ref([{}]);
+      const filteredSynonyms = ref([{}]);
+
       return {
-        taxonPageApiResults: ref([{}]),
-        taxonViewed: ref([{}])
-      }
+        taxonPageApiResults,
+        taxonViewed,
+        relationshipsResponse,
+        synonyms,
+        sortedSynonyms,
+        filteredSynonyms,
+        synonymItem,
+        synonymHtml,
+        synonymTags
+      };
     },
     
     computed: {
@@ -32,14 +58,51 @@
         }
     },
     
-    async created(taxonID) {
+    async mounted(taxonID) {
       taxonID = this.$route.query.taxonID
       const response = await axios.get('https://sfg.taxonworks.org/api/v1/taxon_names?taxon_name_id[]=' + taxonID + '&validity=true&per=250&exact=true&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
+      //await axios.get('https://sfg.taxonworks.org/api/v1/taxon_names?validity=false&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
+      //  .then(response => {
+      //    const synonymsResponse = response.data;
+      //    console.log(synonymsResponse);
+      //    const synonymsFiltered = synonymsResponse.filter(synonyms => synonyms.cached_valid_taxon_name_id === taxonID);
+      //    console.log(synonymsFiltered);
+      //  })
+      const relationshipsResponse = await axios.get('https://sfg.taxonworks.org/api/v1/taxon_name_relationships?object_taxon_name_id=' + taxonID + '&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
+      //console.log(relationshipsResponse)
       this.taxonViewed = response.data
-      console.log('The taxon ID is: ' + taxonID);
+      this.synonyms = relationshipsResponse.data
+      //this.sortSynonyms()
+      //this.removeNonSynonyms()
+      //this.italicizeSynonyms()
+      //console.log('The taxon ID is: ' + taxonID);
       //console.log(this.taxonPageApiResults)
-      console.log(this.taxonViewed)
-      console.log('The rank string is: ' + this.taxonViewed[0].rank_string);
+      //console.log(this.taxonViewed)
+      //console.log('The rank string is: ' + this.taxonViewed[0].rank_string);
+      this.sortedSynonyms = this.synonyms.sort((a, b) => {
+        if (a.cached < b.cached) return -1
+        if (a.cached > b.cached) return 1
+      })
+      this.filteredSynonyms = this.sortedSynonyms.filter(x => x.inverse_assignment_method === "iczn_invalid" || x.inverse_assignment_method === "iczn_subjective_synonym" || x.inverse_assignment_method === "iczn_misspelling")
+      const synonymIDArray = this.filteredSynonyms.map(obj => obj.subject_taxon_name_id);
+      console.log("synonymIDArray is: " + synonymIDArray)
+      synonymIDArray.forEach(function(item) {
+        console.log("this item is: " + item)
+        const synonymPromise = axios.get('https://sfg.taxonworks.org/api/v1/taxon_names/' + item + '/inventory/summary?id=' + item + '&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
+        //console.log(synonymPromise)
+        .then(function(synonymPromise) {
+          if (synonymPromise.data){
+            synonymItem = synonymPromise.data
+            synonymHtml = synonymItem.full_name_tag.toString()
+            console.log("synonymHtml is: " + synonymHtml)
+            if(synonymItem != null ){
+              synonymTags.value.push(synonymHtml)
+              console.log("this synonymTag iteration is: " + synonymTags.value) 
+            }
+          return synonymTags
+          }
+        })
+      })
     }
   }
 </script>
