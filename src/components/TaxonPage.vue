@@ -21,7 +21,7 @@
   
   var synonymItem = ref("");
   var synonymHtml = ref("");
-  var synonymTags = ref([{}]);
+  var synonymTags = ref(['']);
   
   export default {
     setup() {
@@ -58,6 +58,10 @@
         }
     },
     
+    created() {
+      synonymTags.value = [];
+    },
+    
     async mounted(taxonID) {
       taxonID = this.$route.query.taxonID
       const response = await axios.get('https://sfg.taxonworks.org/api/v1/taxon_names?taxon_name_id[]=' + taxonID + '&validity=true&per=250&exact=true&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
@@ -83,7 +87,8 @@
         if (a.cached < b.cached) return -1
         if (a.cached > b.cached) return 1
       })
-      this.filteredSynonyms = this.sortedSynonyms.filter(x => x.inverse_assignment_method === "iczn_invalid" || x.inverse_assignment_method === "iczn_subjective_synonym" || x.inverse_assignment_method === "iczn_misspelling")
+      //this.filteredSynonyms = this.sortedSynonyms.filter(x => x.inverse_assignment_method === "iczn_invalid" || x.inverse_assignment_method === "iczn_subjective_synonym" || x.inverse_assignment_method === "iczn_misspelling")
+      this.filteredSynonyms = this.sortedSynonyms.filter(x => x.inverse_assignment_method === "iczn_subjective_synonym" || x.inverse_assignment_method === "iczn_misspelling")
       const synonymIDArray = this.filteredSynonyms.map(obj => obj.subject_taxon_name_id);
       console.log("synonymIDArray is: " + synonymIDArray)
       synonymIDArray.forEach(function(item) {
