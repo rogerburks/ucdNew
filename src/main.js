@@ -9,7 +9,8 @@ import SearchResults from './components/SearchResults.vue'
 import './assets/main.css'
 
 //import bootstrap for responsive visual controls
-import "bootstrap/dist/css/bootstrap.min.css"
+import "bootstrap/dist/css/bootstrap.css"
+import 'bootstrap/dist/js/bootstrap.js'
 
 const routes = [{
         path: '/',
