@@ -54,5 +54,9 @@ header {
     place-items: flex-start;
     flex-wrap: nowrap;
   }
+  
+  .nav-item {
+    display: inline-block;
+  }
 }
 </style>

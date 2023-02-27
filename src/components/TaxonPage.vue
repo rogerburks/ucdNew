@@ -8,13 +8,18 @@
     <br>
     <div class="row" ref="containerOfSynonyms" name="taxonPageSynonymsContainer">
       <div class="col-12 bd-highlight align-items-start" id="results-list-div" ref="resultsList">
-        <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSynonyms" aria-expanded="false">
-          Toggle synonyms and unavailable names
+        <button class="btn btn-link" type="button" @click="showSynonyms = !showSynonyms" aria-expanded="false">
+          <span v-if="resultsExist">Toggle taxonomic history</span>
         </button>
-        <div id="collapseSynonyms">
-          <ul id="results-list-span">
-            <li style="list-style-type:none" v-for="tag in sortedSynonyms" v-html="tag"></li>
-          </ul>
+        <div id="collapseSynonyms" v-show="showSynonyms">
+          <div id = "showIfQuery" v-if="resultsExist">
+            <ul id="results-list-span">
+              <li style="list-style-type:none" v-for="tag in sortedSynonyms" v-html="tag"></li>
+            </ul>
+          </div>
+          <div id="showIfNoQuery" v-else>
+            No search has been made
+          </div>
         </div>
       </div>
     </div>
@@ -59,8 +64,14 @@
       };
     },
     
+    data(){
+      return {
+        showSynonyms: true
+      }
+    },
+    
+    
     computed: {
-      
       italicized: function(){
         if(this.taxonViewed[0].rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus'){
           return true
@@ -94,63 +105,67 @@
             return a.localeCompare(b);
           });
         }
+      },
+      
+      resultsExist() {
+        return this.$route.query.taxonID !== undefined && this.$route.query.taxonID !== null;
       }
     },
-
     
     async mounted() {
-  const taxonID = this.$route.query.taxonID;
-  const promises = [];
+      const taxonID = this.$route.query.taxonID;
+      const promises = [];
   
-  const response = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names?taxon_name_id[]=${taxonID}&validity=true&per=250&exact=true&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
-  const relationshipsResponse = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_name_relationships?object_taxon_name_id=${taxonID}&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
+      if(taxonID){
+        const response = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names?taxon_name_id[]=${taxonID}&validity=true&per=250&exact=true&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
+        const relationshipsResponse = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_name_relationships?object_taxon_name_id=${taxonID}&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
+        
+        this.taxonViewed = response.data;
+        this.synonyms = relationshipsResponse.data;
+
+        this.sortedSynonyms = this.synonyms.sort((a, b) => {
+          if (a.cached < b.cached) return -1;
+          if (a.cached > b.cached) return 1;
+          return 0;
+        });
+
+        this.filteredSynonyms = this.sortedSynonyms.filter(x => x.inverse_assignment_method === "iczn_subjective_synonym" || x.inverse_assignment_method === "iczn_misspelling" || x.inverse_assignment_method === "original_species" || x.inverse_assignment_method === "iczn_synonym" || x.inverse_assignment_method === "iczn_invalid");
+
+        const synonymIDArray = this.filteredSynonyms.map(obj => obj.subject_taxon_name_id);
+        const originalCombinationHTML = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${taxonID}?extend[]=taxon_name_relationships&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
   
-  this.taxonViewed = response.data;
-  this.synonyms = relationshipsResponse.data;
+        this.synonymItem = originalCombinationHTML.data;
+        this.synonymHtml = this.synonymItem.original_combination.toString();
+        synonymTags.value.push(this.synonymHtml);
 
-  this.sortedSynonyms = this.synonyms.sort((a, b) => {
-    if (a.cached < b.cached) return -1;
-    if (a.cached > b.cached) return 1;
-    return 0;
-  });
+        for (const item of synonymIDArray) {
+          const synonymPromise = axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${item}/inventory/summary?id=${item}&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
+          promises.push(synonymPromise);
+        }
 
-  this.filteredSynonyms = this.sortedSynonyms.filter(x => x.inverse_assignment_method === "iczn_subjective_synonym" || x.inverse_assignment_method === "iczn_misspelling" || x.inverse_assignment_method === "original_species" || x.inverse_assignment_method === "iczn_synonym" || x.inverse_assignment_method === "iczn_invalid");
+        const sortedSynonyms = await Promise.all(promises).then(responses => {
+          const synonymUnsorted = responses.map(response => {
+            const synonymItem = response.data;
+            const synonymHtml = synonymItem.full_name_tag.toString();
+            return synonymHtml;
+          });
 
-  const synonymIDArray = this.filteredSynonyms.map(obj => obj.subject_taxon_name_id);
-  const originalCombinationHTML = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${taxonID}?extend[]=taxon_name_relationships&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
-  
-  this.synonymItem = originalCombinationHTML.data;
-  this.synonymHtml = this.synonymItem.original_combination.toString();
-  synonymTags.value.push(this.synonymHtml);
+          const synonymSorted = synonymUnsorted.sort((a, b) => {
+            const yearA = a.match(/(\d{4})/);
+            const yearB = b.match(/(\d{4})/);
+            if (yearA && yearB) {
+              return parseInt(yearA[1]) - parseInt(yearB[1]);
+            }
+            return a.localeCompare(b);
+          });
 
-  for (const item of synonymIDArray) {
-    const synonymPromise = axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${item}/inventory/summary?id=${item}&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
-    promises.push(synonymPromise);
-  }
+          return synonymSorted;
+        });
 
-  const sortedSynonyms = await Promise.all(promises).then(responses => {
-    const synonymUnsorted = responses.map(response => {
-      const synonymItem = response.data;
-      const synonymHtml = synonymItem.full_name_tag.toString();
-      return synonymHtml;
-    });
+        this.sortedSynonyms = sortedSynonyms;
 
-    const synonymSorted = synonymUnsorted.sort((a, b) => {
-      const yearA = a.match(/(\d{4})/);
-      const yearB = b.match(/(\d{4})/);
-      if (yearA && yearB) {
-        return parseInt(yearA[1]) - parseInt(yearB[1]);
+        console.log(sortedSynonyms);
       }
-      return a.localeCompare(b);
-    });
-
-    return synonymSorted;
-  });
-
-  this.sortedSynonyms = sortedSynonyms;
-
-  console.log(sortedSynonyms);
-}
-
+    }
   }
 </script>
