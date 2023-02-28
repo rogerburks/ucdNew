@@ -23,7 +23,9 @@ import LinkRow from './components/LinkRow.vue';
       <!--Need to put page position here-->
       <!--visit history needs to be a column on the left-->
       <slot name="search"></slot>
-      <slot name="taxonPage"></slot>
+      <keep-alive>
+        <slot name="taxonPage"></slot>
+      </keep-alive>
     </div>
   </div>
 </template>

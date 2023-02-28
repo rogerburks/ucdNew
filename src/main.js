@@ -32,7 +32,17 @@ const routes = [{
         path: '/taxonResults',
         name: 'TaxonSearchResults',
         component: SearchResults
-    }
+    },
+    {
+        path: '/biologicalAssociations',
+        name: 'BiologicalAssociations',
+        component: SearchResults
+    },
+    {
+        path: '/distribution',
+        name: 'Distribution',
+        component: SearchResults
+    },
 ]
 
 const router = createRouter({

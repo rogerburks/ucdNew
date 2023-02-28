@@ -1,6 +1,6 @@
 # ucdNew
 
-This template should help get you started developing with Vue 3 in Vite.
+This is the official project for making a public-facing page for the new Universal Chalcidoidea Database, using Taxonworks to host and manage the data. The front end is created with Vue.js and Bootstrap.
 
 ## Recommended IDE Setup
 
