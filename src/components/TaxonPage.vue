@@ -36,6 +36,8 @@
   var synonymFinal = ref([]);
   var synonymSorted = ref([]);
   var otuIDChain = ('');
+  var taxonIDChain = ('');
+  var taxonNamesWithOtusData = ref([]);
   
   export default {
     setup() {
@@ -66,7 +68,8 @@
         synonymSorted,
         synonymFinal,
         newVal,
-        finalArray
+        finalArray,
+        taxonNamesWithOtusData
       };
     },
     
@@ -115,28 +118,42 @@
         const response = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names?taxon_name_id[]=${taxonID}&validity=true&per=250&exact=true&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
         const relationshipsResponse = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_name_relationships?object_taxon_name_id=${taxonID}&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
         
-        this.taxonViewed = response.data;
+        this.taxonViewed = await response.data
+        taxonIDChain = "?taxon_name_id[]=" + await this.taxonViewed[0].id
+        
         this.synonyms = relationshipsResponse.data
 
         this.filteredSynonyms = this.synonyms.filter(x => x.inverse_assignment_method === "iczn_subjective_synonym" || x.inverse_assignment_method === "iczn_misspelling" || x.inverse_assignment_method === "original_species" || x.inverse_assignment_method === "iczn_synonym" || x.inverse_assignment_method === "iczn_invalid");
+        
+        for (const taxonName of this.filteredSynonyms) {
+          taxonIDChain = taxonIDChain + "&taxon_name_id[]=" + taxonName.subject_taxon_name_id.toString()
+        }
+        console.log('taxonIDChain is: ' + taxonIDChain);
+        
+        const taxonNamesWithOtus = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${taxonIDChain}&extend[]=otus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`)
+        this.taxonNamesWithOtusData = await taxonNamesWithOtus.data
+        //console.log("tnwod test: " + this.taxonNamesWithOtusData[0].id.toString())
 
         const synonymIDArray = this.filteredSynonyms.map(obj => obj.subject_taxon_name_id);
+        console.log("synonymIDArray is: " + synonymIDArray)
         const originalCombinationHTML = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${taxonID}?extend[]=otus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
         
         this.synonymItem = originalCombinationHTML.data;
         this.synonymHtml = this.synonymItem.original_combination.toString();
         
-        for (const otu of this.synonymItem.otus) {
+        //This for...of loop concatenates OTU (Operational Taxonomic Unit) IDs and proper syntax to make queries using a chain otu_id[] parameters. This is being done to request information that is more convenient to access through OTUs instead of through taxon names
+        for (const taxonName of this.taxonNamesWithOtusData) {
           //console.log("otuID is: " + otuID.toString())
-          otuIDChain = otuIDChain + "&otu_id[]=" + otu.id.toString();
+          otuIDChain = otuIDChain + "&otu_id[]=" + taxonName.id.toString()
           //console.log("this otu.id is: " + otu.id.toString())
         }
         console.log('otuIDChain is: ' + otuIDChain);
+        
         synonymTags.value.push(this.synonymHtml);
 
-        for (const item of synonymIDArray) {
-          //console.log("synonymIDArray item is: " + item)
-          const synonymPromise = axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${item}?extend[]=otus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
+        for (const taxonNameID of synonymIDArray) {
+          //console.log("synonymIDArray taxonNameID is: " + taxonNameID)
+          const synonymPromise = axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${taxonNameID}?extend[]=otus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
           promises.push(synonymPromise);
         }
 
