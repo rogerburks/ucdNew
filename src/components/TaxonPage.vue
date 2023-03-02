@@ -14,7 +14,7 @@
         <div id="collapseSynonyms" v-show="showSynonyms">
           <div id = "showIfQuery" v-if="resultsExist">
             <ul id="results-list-span">
-              <li style="list-style-type:none" v-for="tag in sortedSynonyms" v-html="tag"></li>
+              <li style="list-style-type:none" v-for="tag in finalArray" v-html="tag"></li>
             </ul>
           </div>
           <div id="showIfNoQuery" v-else>
@@ -32,7 +32,6 @@
   var synonymItem = ref("");
   var synonymHtml = ref("");
   var synonymTags = ref([]);
-  var synonymUnsorted = ref([]);
   var synonymFinal = ref([]);
   var synonymSorted = ref([]);
   var otuIDChain = ('');
@@ -45,10 +44,12 @@
       const taxonPageApiResults = ref([{}]);
       const taxonViewed = ref([{}]);
       const relationshipsResponse = ref([{}]);
+      const synonymResponse = ref([{}]);
       const synonyms = ref([{}]);
       const sortedSynonyms = ref([{}]);
       const filteredSynonyms = ref([{}]);
       const newVal = ref([]);
+      const synonymUnsorted = ref([]);
       
       const finalArray = computed(() => {
         return [...synonymTags.value, ...sortedSynonyms.value]
@@ -69,7 +70,8 @@
         synonymFinal,
         newVal,
         finalArray,
-        taxonNamesWithOtusData
+        taxonNamesWithOtusData,
+        synonymResponse
       };
     },
     
@@ -92,7 +94,7 @@
       
       synonymSorting: {
         get() {
-          return synonymUnsorted.value
+          return this.synonymUnsorted.value
         },
         set(synonymSorted) {
           this.synonymSorted = this.synonymUnsorted.sort((a, b) => {
@@ -138,10 +140,12 @@
         console.log("synonymIDArray is: " + synonymIDArray)
         const originalCombinationHTML = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${taxonID}?extend[]=otus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
         
-        this.synonymItem = originalCombinationHTML.data;
+        this.synonymItem = await originalCombinationHTML.data;
         this.synonymHtml = this.synonymItem.original_combination.toString();
         
-        //This for...of loop concatenates OTU (Operational Taxonomic Unit) IDs and proper syntax to make queries using a chain otu_id[] parameters. This is being done to request information that is more convenient to access through OTUs instead of through taxon names
+        //This for...of loop concatenates OTU (Operational Taxonomic Unit) IDs and proper syntax to make queries using a chain otu_id[] parameters. 
+        //This is being done to request information that is more convenient to access through OTUs instead of through taxon names.
+        //It should gather the otus for each taxon name.
         for (const taxonName of this.taxonNamesWithOtusData) {
           //console.log("otuID is: " + otuID.toString())
           otuIDChain = otuIDChain + "&otu_id[]=" + taxonName.id.toString()
@@ -149,36 +153,35 @@
         }
         console.log('otuIDChain is: ' + otuIDChain);
         
-        synonymTags.value.push(this.synonymHtml);
+        //synonymTags.value.push(this.synonymHtml);
 
-        for (const taxonNameID of synonymIDArray) {
-          //console.log("synonymIDArray taxonNameID is: " + taxonNameID)
-          const synonymPromise = axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${taxonNameID}?extend[]=otus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
-          promises.push(synonymPromise);
+        const synonymResponse = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${taxonIDChain}&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
+        //console.log("synonymResponseZero id = " + synonymResponse.data[0].id)
+
+        this.synonymUnsorted = await synonymResponse.data
+        synonymHtml = await this.synonymItem.original_combination.toString();
+        
+        this.sortedSynonyms = []
+        
+        for (const taxonName in this.synonymUnsorted){
+          if(this.synonymUnsorted[taxonName].cached_original_combination_html != null && this.synonymUnsorted[taxonName].cached_author_year != null){
+            //console.log("taxonName cached_original_combination_html is: " + this.synonymUnsorted[taxonName].cached_original_combination_html)
+            this.sortedSynonyms.push(this.synonymUnsorted[taxonName].cached_original_combination_html.toString() + " " + this.synonymUnsorted[taxonName].cached_author_year.toString())
+          }
+        }
+        
+        for (const string in this.sortedSynonyms){
+          console.log("the taxon string is: " + this.sortedSynonyms[string])
         }
 
-        const sortedSynonyms = await Promise.all(promises).then(responses => {
-          const synonymUnsorted = responses.map(response => {
-            const synonymItem = response.data;
-            const synonymHtml = synonymItem.original_combination.toString();
-            return synonymHtml;
-          });
-
-          const synonymSorted = synonymUnsorted.sort((a, b) => {
-            const yearA = a.match(/(\d{4})/);
-            const yearB = b.match(/(\d{4})/);
-            if (yearA && yearB) {
-              return parseInt(yearA[1]) - parseInt(yearB[1]);
-            }
-            return a.localeCompare(b);
-          });
-
-          return synonymSorted;
+        synonymSorted = this.sortedSynonyms.sort((a, b) => {
+          const yearA = a.match(/(\d{4})/);
+          const yearB = b.match(/(\d{4})/);
+          if (yearA && yearB) {
+            return parseInt(yearA[1]) - parseInt(yearB[1]);
+          }
+          return a.localeCompare(b);
         });
-
-        this.sortedSynonyms = sortedSynonyms;
-
-        //console.log(sortedSynonyms);
       }
     }
   }

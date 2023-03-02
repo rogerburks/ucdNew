@@ -71,7 +71,7 @@ export default {
       else if(this.genus){
         this.genus = this.genus.replace(/^./, this.genus[0].toUpperCase());
         this.apiResults = axios
-        const response = await axios.get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '&validity=true&per=250&exact=false&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
+        const response = await axios.get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '&validity=true&per=250&exact=false&nomenclature_code[]=ICZN&nomenclature_group[]=genus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
         this.apiResults = response.data
         this.sortResponse()
         //catch(error => console.log(error))
