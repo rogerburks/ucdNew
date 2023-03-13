@@ -179,6 +179,7 @@
           }
         }
         console.log('otuIDChain is: ' + otuIDChain);
+        this.otuIDS = otuIDChain
         
         //synonymTags.value.push(this.synonymHtml);
 
