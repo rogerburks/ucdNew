@@ -5,6 +5,7 @@ import HomePage from './components/HomePage.vue'
 import BinomialSearch from './components/BinomialSearch.vue'
 import TaxonPage from './components/TaxonPage.vue'
 import SearchResults from './components/SearchResults.vue'
+import BiologicalAssociations from './components/BiologicalAssociations.vue'
 
 import './assets/main.css'
 
@@ -36,7 +37,7 @@ const routes = [{
     {
         path: '/biologicalAssociations',
         name: 'BiologicalAssociations',
-        component: SearchResults
+        component: BiologicalAssociations
     },
     {
         path: '/distribution',

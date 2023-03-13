@@ -25,7 +25,8 @@
       </div>
       <div class="col-xs-12 bd-highlight" id="taxon-page-div" ref="taxonPage">
         <div>
-          <span id="taxon-page-italicized-name" style="font-size:large; font-style: italic; font-weight: 600;" ref="taxonPageNameItalicized"><strong></strong> </span><span id="taxon-page-author-year" style="font-size:large; font-style: normal; font-weight: 600;" ref="taxonPageNameAuthorYear"></span>
+          <span id="taxon-page-italicized-name" style="font-size:large; font-style: italic; font-weight: 600;" ref="taxonPageNameItalicized"><strong></strong> </span>
+          <span id="taxon-page-author-year" style="font-size:large; font-style: normal; font-weight: 600;" ref="taxonPageNameAuthorYear"></span>
         </div>
       </div>
     </div>
@@ -71,7 +72,7 @@ export default {
       else if(this.genus){
         this.genus = this.genus.replace(/^./, this.genus[0].toUpperCase());
         this.apiResults = axios
-        const response = await axios.get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '&validity=true&per=250&exact=false&nomenclature_code[]=ICZN&nomenclature_group[]=genus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
+        const response = await axios.get('https://sfg.taxonworks.org/api/v1/taxon_names?name=' + this.genus + '&validity=true&per=250&nomenclature_code[]=ICZN&nomenclature_group[]=Genus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ')
         this.apiResults = response.data
         this.sortResponse()
         //catch(error => console.log(error))

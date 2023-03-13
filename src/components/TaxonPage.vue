@@ -23,11 +23,14 @@
         </div>
       </div>
     </div>
+    <biological-associations :baProp="otuIDS">
+    </biological-associations>
   </template>
   
 <script>
   import axios from "axios"
   import { computed, ref, reactive } from '@vue/runtime-core'
+  import BiologicalAssociations from './BiologicalAssociations.vue'
   
   var synonymItem = ref("");
   var synonymHtml = ref("");
@@ -37,8 +40,12 @@
   var otuIDChain = ('');
   var taxonIDChain = ('');
   var taxonNamesWithOtusData = ref([]);
+  var taxonNameIDForOTULoop = ('');
+  var otusRetrieved = ref([{}]);
   
   export default {
+    name: 'TaxonPage',
+    
     setup() {
       //variables are made reactive or ref here      
       const taxonPageApiResults = ref([{}]);
@@ -71,13 +78,20 @@
         newVal,
         finalArray,
         taxonNamesWithOtusData,
-        synonymResponse
+        synonymResponse,
+        taxonNameIDForOTULoop,
+        otusRetrieved
       };
+    },
+    
+    components: {
+      BiologicalAssociations
     },
     
     data(){
       return {
-        showSynonyms: true
+        showSynonyms: true,
+        otuIDS: ref(otuIDChain)
       }
     },
         
@@ -110,10 +124,16 @@
       
       resultsExist() {
         return this.$route.query.taxonID !== undefined && this.$route.query.taxonID !== null;
+      },
+      
+      //need to fix this to check for bio associations
+      biologicalAssociationsResultsExist() {
+        return this.$route.query.taxonID !== undefined && this.$route.query.taxonID !== null;
       }
     },
     
     async mounted() {
+      otuIDChain = ''
       const taxonID = this.$route.query.taxonID;
       const promises = [];
       if(taxonID){
@@ -148,8 +168,15 @@
         //It should gather the otus for each taxon name.
         for (const taxonName of this.taxonNamesWithOtusData) {
           //console.log("otuID is: " + otuID.toString())
-          otuIDChain = otuIDChain + "&otu_id[]=" + taxonName.id.toString()
-          //console.log("this otu.id is: " + otu.id.toString())
+          taxonNameIDForOTULoop = taxonName.id.toString()
+          const findOTUResponse = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${taxonNameIDForOTULoop}?extend[]=otus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
+          otusRetrieved = await findOTUResponse.data
+          console.log("the taxonID for this otu loop iteration is: " + otusRetrieved.id)
+          for (const otu of otusRetrieved.otus)
+          {
+            otuIDChain = otuIDChain + "&otu_id[]=" + otu.id.toString() 
+            console.log("this otu.id is: " + otu.id.toString())
+          }
         }
         console.log('otuIDChain is: ' + otuIDChain);
         
@@ -170,9 +197,9 @@
           }
         }
         
-        for (const string in this.sortedSynonyms){
-          console.log("the taxon string is: " + this.sortedSynonyms[string])
-        }
+        //for (const string in this.sortedSynonyms){
+        //  console.log("the taxon string is: " + this.sortedSynonyms[string])
+        //}
 
         synonymSorted = this.sortedSynonyms.sort((a, b) => {
           const yearA = a.match(/(\d{4})/);

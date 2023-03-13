@@ -1,8 +1,9 @@
 <script setup>
-import HomePage from './components/HomePage.vue';
-import BinomialSearch from './components/BinomialSearch.vue';
-import TaxonPage from './components/TaxonPage.vue';
-import LinkRow from './components/LinkRow.vue';
+  import HomePage from './components/HomePage.vue';
+  import BinomialSearch from './components/BinomialSearch.vue';
+  import TaxonPage from './components/TaxonPage.vue';
+  import LinkRow from './components/LinkRow.vue';
+  import BiologicalAssociations from './components/BiologicalAssociations.vue';
 </script>
 
 <template>
