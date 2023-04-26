@@ -178,6 +178,9 @@
             console.log("this otu.id is: " + otu.id.toString())
           }
         }
+        if(otuIDChain){
+          otuIDChain = otuIDChain.substring(1)
+        }
         console.log('otuIDChain is: ' + otuIDChain);
         this.otuIDS = otuIDChain
         
