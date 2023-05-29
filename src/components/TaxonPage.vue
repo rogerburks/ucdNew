@@ -194,7 +194,7 @@
         //console.log("synonymResponseZero id = " + synonymResponse.data[0].id)
 
         this.synonymUnsorted = await synonymResponse.data
-        //this.nomenclaturalReferencesResults = await this.synonymUnsorted.sources
+        this.nomenclaturalReferencesResults = await this.synonymUnsorted.sources
         synonymHtml = await this.synonymItem.original_combination.toString();
         
         this.sortedSynonyms = []

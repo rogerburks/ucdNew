@@ -6,6 +6,7 @@ import BinomialSearch from './components/BinomialSearch.vue'
 import TaxonPage from './components/TaxonPage.vue'
 import SearchResults from './components/SearchResults.vue'
 import BiologicalAssociations from './components/BiologicalAssociations.vue'
+import NomenclaturalReferences from './components/NomenclaturalReferences.vue'
 
 import './assets/main.css'
 
@@ -44,6 +45,12 @@ const routes = [{
         name: 'Distribution',
         component: SearchResults
     },
+    {
+        path: '/nomenclaturalReferences',
+        name: 'NomenclaturalReferences',
+        component: NomenclaturalReferences
+    },
+    
 ]
 
 const router = createRouter({
