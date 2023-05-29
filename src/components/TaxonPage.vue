@@ -14,7 +14,7 @@
         <div id="collapseSynonyms" v-show="showSynonyms">
           <div id = "showIfQuery" v-if="resultsExist">
             <ul id="results-list-span">
-              <li style="list-style-type:none" v-for="tag in finalArray" v-html="tag"></li>
+              <li style="list-style-type:none" v-for="tag in synonymUnsorted.timeline" :key="tag" v-html="tag.label"></li>
             </ul>
           </div>
           <div id="showIfNoQuery" v-else>
@@ -23,14 +23,15 @@
         </div>
       </div>
     </div>
-    <biological-associations :baProp="otuIDS">
-    </biological-associations>
+    <nomenclaturalReferences :nrProp="nomenclaturalReferencesResults"></nomenclaturalReferences>
+    <biological-associations :baProp="otuIDS"></biological-associations>
   </template>
   
 <script>
   import axios from "axios"
-  import { computed, ref, reactive } from '@vue/runtime-core'
+  import { onMounted, ref, reactive, computed } from 'vue'
   import BiologicalAssociations from './BiologicalAssociations.vue'
+  import NomenclaturalReferences from "./NomenclaturalReferences.vue";
   
   var synonymItem = ref("");
   var synonymHtml = ref("");
@@ -38,6 +39,7 @@
   var synonymFinal = ref([]);
   var synonymSorted = ref([]);
   var otuIDChain = ('');
+  var nomenclaturalReferencesResults = ref([]);
   var taxonIDChain = ('');
   var taxonNamesWithOtusData = ref([]);
   var taxonNameIDForOTULoop = ('');
@@ -85,13 +87,15 @@
     },
     
     components: {
-      BiologicalAssociations
+      BiologicalAssociations,
+      NomenclaturalReferences
     },
     
     data(){
       return {
         showSynonyms: true,
-        otuIDS: ref(otuIDChain)
+        otuIDS: ref(otuIDChain),
+        nomenclaturalReferencesResults: ref(this.synonymUnsorted.sources)
       }
     },
         
@@ -186,33 +190,34 @@
         
         //synonymTags.value.push(this.synonymHtml);
 
-        const synonymResponse = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${taxonIDChain}&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
+        const synonymResponse = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names/${taxonID}/inventory/catalog?token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
         //console.log("synonymResponseZero id = " + synonymResponse.data[0].id)
 
         this.synonymUnsorted = await synonymResponse.data
+        //this.nomenclaturalReferencesResults = await this.synonymUnsorted.sources
         synonymHtml = await this.synonymItem.original_combination.toString();
         
         this.sortedSynonyms = []
         
-        for (const taxonName in this.synonymUnsorted){
-          if(this.synonymUnsorted[taxonName].cached_original_combination_html != null && this.synonymUnsorted[taxonName].cached_author_year != null){
+        //for (const taxonName in this.synonymUnsorted){
+        //  if(this.synonymUnsorted[taxonName].cached_original_combination_html != null && this.synonymUnsorted[taxonName].cached_author_year != null){
             //console.log("taxonName cached_original_combination_html is: " + this.synonymUnsorted[taxonName].cached_original_combination_html)
-            this.sortedSynonyms.push(this.synonymUnsorted[taxonName].cached_original_combination_html.toString() + " " + this.synonymUnsorted[taxonName].cached_author_year.toString())
-          }
-        }
+        //    this.sortedSynonyms.push(this.synonymUnsorted[taxonName].cached_original_combination_html.toString() + " " + this.synonymUnsorted[taxonName].cached_author_year.toString())
+        //  }
+        //}
         
         //for (const string in this.sortedSynonyms){
         //  console.log("the taxon string is: " + this.sortedSynonyms[string])
         //}
 
-        synonymSorted = this.sortedSynonyms.sort((a, b) => {
-          const yearA = a.match(/(\d{4})/);
-          const yearB = b.match(/(\d{4})/);
-          if (yearA && yearB) {
-            return parseInt(yearA[1]) - parseInt(yearB[1]);
-          }
-          return a.localeCompare(b);
-        });
+        //synonymSorted = this.sortedSynonyms.sort((a, b) => {
+        //  const yearA = a.match(/(\d{4})/);
+        //  const yearB = b.match(/(\d{4})/);
+        //  if (yearA && yearB) {
+        //    return parseInt(yearA[1]) - parseInt(yearB[1]);
+        //  }
+        //  return a.localeCompare(b);
+        //});
       }
     }
   }
