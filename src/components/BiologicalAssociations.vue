@@ -43,7 +43,7 @@
     computed: {
       sortedBiologicalAssociations() {
         return this.biologicalAssociationsJson
-        .filter(assocation => assocation.biological_relationship.name !== "compared with")
+        .filter(association => association.biological_relationship.name !== "compared with")
         .filter(association => association.object.object_tag)
         .map(association => ((association.object.object_tag.replace(" &#10003;", "").replace(" &#10060;", "").replace(" [c]", "") + " is a " + association.biological_relationship.object_label.toLowerCase() + " of " + association.subject.object_tag).toString().replace(" &#10003;", "").replace(" &#10060;", "").replace(" [c]", "") + ", (" + association.citations[0].citation_source_body + ")").replace("a associate", "an associate"));
       },

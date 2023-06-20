@@ -25,13 +25,15 @@
     </div>
     <nomenclaturalReferences :nrProp="nomenclaturalReferencesResults"></nomenclaturalReferences>
     <biological-associations :baProp="otuIDS"></biological-associations>
+    <taxon-distribution :baProp="otuIDS"></taxon-distribution>
   </template>
   
 <script>
   import axios from "axios"
   import { onMounted, ref, reactive, computed } from 'vue'
   import BiologicalAssociations from './BiologicalAssociations.vue'
-  import NomenclaturalReferences from "./NomenclaturalReferences.vue";
+  import NomenclaturalReferences from "./NomenclaturalReferences.vue"
+  import TaxonDistribution from "./TaxonDistribution.vue"
   
   var synonymItem = ref("");
   var synonymHtml = ref("");
@@ -88,7 +90,8 @@
     
     components: {
       BiologicalAssociations,
-      NomenclaturalReferences
+      NomenclaturalReferences,
+      TaxonDistribution
     },
     
     data(){

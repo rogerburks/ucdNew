@@ -4,18 +4,12 @@
   import TaxonPage from './components/TaxonPage.vue';
   import LinkRow from './components/LinkRow.vue';
   import BiologicalAssociations from './components/BiologicalAssociations.vue';
+  import TaxonDistribution from './components/TaxonDistribution.vue';
 </script>
 
 <template>
-  <header>
-    <HomePage msg="Universal Chalcidoidea Database" />
-  </header>
-
-  <br>
   <div class="row">
-    <div class = "col-12" name="bannerContainer">
-      <!--Need to put banner here-->
-    </div>
+    <img class="banner" src="./components/images/chalcidBanner.jpg">
     <div class="col-12" name="linkRowContainer">
       <slot name="linkRow"></slot>
       <LinkRow />
@@ -56,6 +50,11 @@ header {
     display: flex;
     place-items: flex-start;
     flex-wrap: nowrap;
+  }
+  
+  .banner {
+    width: 100%;
+    height: auto;
   }
   
   .nav-item {

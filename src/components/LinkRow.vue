@@ -4,11 +4,23 @@
 <template  v-slot:linkRow>
     <div class="row" name="linkRowContainer">
         <ul class = "nav">
+          <li class="nav-item">
+              <router-link :to ="{name: 'Home'} " class="nav-link">Home</router-link>
+            </li>
             <li class="nav-item">
               <router-link :to ="{name: 'BinomialSearch'} " class="nav-link">Search names</router-link>
             </li>
             <li class="nav-item">
               <router-link :to ="{name: 'TaxonPage'} " class="nav-link">Taxon page</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link :to ="{name: 'AssociatesSearch'} " class="nav-link">Search biological associates</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link :to ="{name: 'DistributionSearch'} " class="nav-link">Search by country</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link :to ="{name: 'KeywordSearch'} " class="nav-link">Search keywords</router-link>
             </li>
         </ul>
         <router-view></router-view>
