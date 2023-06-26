@@ -2,7 +2,9 @@
   <div class="row" ref="containerOfBiologicalAssociations" name="biologicalAssociationsContainer">
     <div class="col-12 bd-highlight align-items-start" id="biologicalAssociations-list-div" ref="biologicalAssociationsList">
       <button class="btn btn-link" type="button" @click="showNomenclaturalReferences = !showNomenclaturalReferences" aria-expanded="false">
-         <span  v-if="nomenclaturalReferencesExist">Toggle nomenclatural references</span>
+        <font-awesome-icon :icon="showNomenclaturalReferences ? 'angle-down' : 'angle-right'" />
+        <span v-if="!showNomenclaturalReferences"> Show nomenclatural references</span>
+        <span v-else> Nomenclatural references</span>
       </button>
         <div id="collapseBiologicalAssociations" v-show="showNomenclaturalReferences">
           <div id = "showIfQuery" v-if="nomenclaturalReferencesExist">
@@ -24,7 +26,7 @@
     
     props: {
       nrProp: {
-        type: String,
+        type: Array,
         required: true
       }
     },

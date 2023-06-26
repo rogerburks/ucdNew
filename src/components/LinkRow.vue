@@ -11,9 +11,6 @@
               <router-link :to ="{name: 'BinomialSearch'} " class="nav-link">Search names</router-link>
             </li>
             <li class="nav-item">
-              <router-link :to ="{name: 'TaxonPage'} " class="nav-link">Taxon page</router-link>
-            </li>
-            <li class="nav-item">
               <router-link :to ="{name: 'AssociatesSearch'} " class="nav-link">Search biological associates</router-link>
             </li>
             <li class="nav-item">

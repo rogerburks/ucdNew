@@ -1,15 +1,10 @@
 <script setup>
   import HomePage from './components/HomePage.vue';
-  import BinomialSearch from './components/BinomialSearch.vue';
-  import TaxonPage from './components/TaxonPage.vue';
   import LinkRow from './components/LinkRow.vue';
-  import BiologicalAssociations from './components/BiologicalAssociations.vue';
-  import TaxonDistribution from './components/TaxonDistribution.vue';
 </script>
-
 <template>
+  <div class="banner" src="./components/images/chalcidBanner.jpg" alt="Banner Image"></div>
   <div class="row">
-    <img class="banner" src="./components/images/chalcidBanner.jpg">
     <div class="col-12" name="linkRowContainer">
       <slot name="linkRow"></slot>
       <LinkRow />
@@ -54,7 +49,11 @@ header {
   
   .banner {
     width: 100%;
-    height: auto;
+    height: 200px;
+    overflow: hidden;
+    background-image: url('./components/images/chalcidBanner.jpg');
+    background-repeat: repeat-x;
+    background-position: left;
   }
   
   .nav-item {

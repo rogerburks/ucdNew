@@ -2,9 +2,10 @@
   <div class="row" ref="containerOfBiologicalAssociations" name="biologicalAssociationsContainer">
     <div class="col-12 bd-highlight align-items-start" id="biologicalAssociations-list-div" ref="biologicalAssociationsList">
       <button class="btn btn-link" type="button" @click="showBiologicalAssociations = !showBiologicalAssociations" aria-expanded="false">
-        <span  v-if="biologicalAssociationsResultsExist">Toggle biological associations</span>
+        <font-awesome-icon :icon="showBiologicalAssociations ? 'angle-down' : 'angle-right'" />
+        <span v-if="!showBiologicalAssociations"> Show biological associations</span>
+        <span v-else> Biological associations</span>
       </button>
-      <!-- <p> Test otu list from Biological Associations: {{ baProp}} </p> -->
       <div id="collapseBiologicalAssociations" v-show="showBiologicalAssociations">
         <div id = "showIfQuery" v-if="biologicalAssociationsResultsExist">
           <ul id="results-list-span">

@@ -13,9 +13,13 @@ import DistributionSearch from './components/DistributionSearch.vue';
 import KeywordSearch from './components/KeywordSearch.vue';
 import './assets/main.css';
 import 'leaflet/dist/leaflet.css';
-//import bootstrap for responsive visual controls
-import "bootstrap/dist/css/bootstrap.css";
+import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/dist/js/bootstrap.js';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faAngleDown, faAngleRight, faPhone } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+library.add(faAngleDown, faAngleRight);
+
 const routes = [{
         path: '/',
         name: 'Home',
@@ -79,4 +83,5 @@ const router = createRouter({
 });
 const app = createApp(App);
 app.use(router);
+app.component('font-awesome-icon', FontAwesomeIcon);
 app.mount('#app');
