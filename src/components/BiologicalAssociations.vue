@@ -7,7 +7,7 @@
         <span v-else> Biological associations</span>
       </button>
       <div id="collapseBiologicalAssociations" v-show="showBiologicalAssociations">
-        <div id = "showIfQuery" v-if="biologicalAssociationsResultsExist">
+        <div id = "showIfQuery" v-if="sortedBiologicalAssociations">
           <ul id="results-list-span">
             <li style="list-style-type:none" v-for="object_tag in sortedBiologicalAssociations" :key="object_tag" v-html="object_tag"></li>
           </ul>
@@ -21,59 +21,47 @@
 </template>
 
 <script>
-  import axios from "axios"
-  import { computed, ref, reactive } from '@vue/runtime-core'
+  import { watch, computed, reactive, toRefs } from 'vue'
+  import api from '/api.js'
 
   export default {
     name: 'BiologicalAssociations',
     
     props: {
-      baProp: {
-        type: String,
-        required: true
-      }
+      baProp: String
     },
     
-    data(){
-      return {
+    setup(props) {
+      const state = reactive({
         showBiologicalAssociations: true,
         biologicalAssociationsJson: []
-      }
-    },
-    
-    computed: {
-      sortedBiologicalAssociations() {
-        return this.biologicalAssociationsJson
+      });
+      
+      const sortedBiologicalAssociations = computed(() => {
+        return state.biologicalAssociationsJson
         .filter(association => association.biological_relationship.name !== "compared with")
         .filter(association => association.object.object_tag)
         .map(association => ((association.object.object_tag.replace(" &#10003;", "").replace(" &#10060;", "").replace(" [c]", "") + " is a " + association.biological_relationship.object_label.toLowerCase() + " of " + association.subject.object_tag).toString().replace(" &#10003;", "").replace(" &#10060;", "").replace(" [c]", "") + ", (" + association.citations[0].citation_source_body + ")").replace("a associate", "an associate"));
-      },
-      biologicalAssociationsResultsExist() {
-        return this.sortedBiologicalAssociations && this.sortedBiologicalAssociations.length > 0;
-      }
-    },
-    
-  async mounted() {
-    await this.fetchBiologicalAssociations();
-  },
-  
-  methods: {
-    async fetchBiologicalAssociations() {
-      if (this.baProp){
-        const baResponse = await axios.get(`https://sfg.taxonworks.org/api/v1/biological_associations?${this.baProp}&extend[]=object&extend[]=subject&extend[]=biological_relationship&extend[]=taxonomy&extend[]=biological_relationship_types&extend[]=citations&page=1&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
-        let newData = await baResponse.data;
-
-        // Make sure Vue's reactivity system acknowledges the change
-        this.biologicalAssociationsJson = [];
-        this.biologicalAssociationsJson = newData;
-      }
-    },
-  },
-  
-  watch: {
-    async baProp() {
-      await this.fetchBiologicalAssociations();
+      });
+      
+      watch(() => props.baProp, async (newVal, oldVal) => {
+        if (newVal) {
+          const baResponse = await api.get(`/biological_associations?${newVal}`,
+            {params: {
+              extend: ["object", "subject", "biological_relationship", "taxonomy", "biological_relationship_types", "citations"],
+              token: import.meta.env.VITE_APP_API_TOKEN,
+              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN,
+            }}
+          );
+          let newData = await baResponse.data;
+          state.biologicalAssociationsJson = newData;
+        }
+      }, { immediate: true });
+      
+      return { 
+        ...toRefs(state),
+        sortedBiologicalAssociations
+      };
     }
-  },
-}
+  }
 </script>
