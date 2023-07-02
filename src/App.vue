@@ -1,7 +1,7 @@
 <script setup>
+  import HomePage from './components/HomePage.vue';
   import LinkRow from './components/LinkRow.vue';
 </script>
-
 <template>
   <div class="banner" src="./components/images/chalcidBanner.jpg" alt="Banner Image"></div>
   <div class="row">
@@ -10,6 +10,8 @@
       <LinkRow />
     </div>
     <div class="col-12" name="contentContainer">
+      <!--Need to put page position here-->
+      <!--visit history needs to be a column on the left-->
       <slot name="search"></slot>
       <keep-alive>
         <slot name="taxonPage"></slot>

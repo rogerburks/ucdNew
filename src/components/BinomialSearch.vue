@@ -7,33 +7,30 @@
     <fieldset>
       <legend>Search Mode</legend>
       <div>
-        <input type="radio" id="regular-search" value="regular" v-model="searchMode" />
+        <input type="radio" id="regular-search" value="regular" v-model="searchMode">
         <label style="padding-left: 2px; padding-right: 15px;" for="regular-search">Regular search</label>
-        <input type="radio" id="autocomplete-search" value="autocomplete" v-model="searchMode" />
+        <input type="radio" id="autocomplete-search" value="autocomplete" v-model="searchMode">
         <label style="padding-left: 2px;" for="autocomplete-search">Autocomplete (wait for results to appear under search field)</label>
       </div>
     </fieldset>
     <div v-if="searchMode === 'regular'" class="col-12" ref="containerOfInputGroup">
       <div class="input-group mb-3 align-items-start" id="binomial-search-group">
         <span class="input-group-text" id="genus-input-label">genus</span>
-        <input type="text" class="form-control" id="binomial-search-input" aria-describedby="genus-input" v-model="genus" @keyup.enter="useInputTerms($event)" />
+        <input type="text" class="form-control" aria-describedby="genus-input" v-model="genus" @keyup.enter="useInputTerms($event)">
         <span class="input-group-text" id="species-input-label">species</span>
-        <input type="text" class="form-control" id="binomial-search-input" aria-describedby="species-input" v-model="species" @keyup.enter="useInputTerms($event)" />
+        <input type="text" class="form-control" aria-describedby="species-input" v-model="species" @keyup.enter="useInputTerms($event)">
         <button class="btn btn-outline-secondary" type="button" id="binomial-search-button" @click="useInputTerms($event)">search</button>
       </div>
     </div>
     <div v-if="searchMode === 'autocomplete'" class="col-12" ref="containerOfInputGroup">
-      <div class="dropdown">
-        <input type="text" v-model="searchTerm" @input="fetchAutocompleteResults" @select="handleSelection" @focus="showDropdown = true" />
-        <ul id="dropdown-menu" ref="autocompleteList" v-show="showDropdown">
-          <li 
-            v-for="result in autocompleteResults" 
-            :key="result.id" 
-            @click="displayAutocompleteTaxonPage(result)"
-            v-html="formatResult(result)">
-          </li>
-        </ul>
+      <div>
+        <v-autocomplete v-model="searchTerm" :items="autocompleteResults" @input="fetchAutocompleteResults" @select="handleSelection">
+          <template #item="{ item }">
+            <a click="handleSelection(item)">{{ item }}</a>
+          </template>
+        </v-autocomplete>
       </div>
+        
     </div>
   </div>
   <br>
@@ -45,197 +42,99 @@
     </div>
     <div class="col-xs-12 bd-highlight" id="taxon-page-div" ref="taxonPage">
       <div>
-        <span id="taxon-page-italicized-name" style="font-size:large; font-style: italic; font-weight: 600;"><strong></strong> </span>
-        <span id="taxon-page-author-year" style="font-size:large; font-style: normal; font-weight: 600;"></span>
+        <span id="taxon-page-italicized-name" style="font-size:large; font-style: italic; font-weight: 600;" ref="taxonPageNameItalicized"><strong></strong> </span>
+        <span id="taxon-page-author-year" style="font-size:large; font-style: normal; font-weight: 600;" ref="taxonPageNameAuthorYear"></span>
       </div>
     </div>
   </div>
 </template>
 
-<style scoped>
-  .dropdown {
-    position: relative;
-  }
-
-  #dropdown-menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    background-color: #ffffff;
-    border: 1px solid #cccccc;
-    border-top: none;
-    z-index: 100;
-    min-width: 100%;
-  }
-
-  #dropdown-menu li {
-    padding: 0.5rem;
-    cursor: pointer;
-  }
-
-  #dropdown-menu li:hover {
-    background-color: #d6c20d;
-  }
-
-  .dropdown input:focus + .dropdown-menu {
-    display: block;
-  }
-  
-  #binomial-search-input {
-    max-width: 500px;
-  }
-</style>
-  
 <script>
+  import axios, { all, spread} from 'axios'
   import { computed, ref, reactive } from '@vue/runtime-core'
-  import api from '../api.js'
-  import { useRouter } from 'vue-router'
-  import { toRefs } from '@vue/reactivity'
 
   export default {
     setup() {
-      const state = reactive({
+      return {
+        genus: ref(''),
+        species: ref(''),
+        apiResults: ref([{}]),
+        listClickedText: ref(''),
+        taxonClicked: ref([{}]),
+        taxonIDClicked: ref(''),
+        sortedResponse: ref([{}])
+      }
+    },
+    
+    data() {
+      return {
         show: true,
         searchMode: "regular",
-        genus: '',
-        species: '',
-        apiResults: [],
-        listClickedText: '',
-        taxonClicked: [],
-        taxonIDClicked: '',
-        sortedResponse: [],
-        showDropdown: false,
         searchTerm: '',
         autocompleteResults: []
-      });
-      
-      const router = useRouter();
-             
-      const fetchAutocompleteResults = async () => {
-        try {
-          const response = await api.get(`/otus/autocomplete`, 
-            {params: {
-              having_taxon_name_only: 'true',
-              token: import.meta.env.VITE_APP_API_TOKEN,
-              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN,
-              term: state.searchTerm
-            }})
-          state.autocompleteResults = response.data
-        } catch (error) {
-          console.error(`An error occurred when calling fetchAutocompleteResults: ${error.message}`)
-          console.error(error.stack)
-        }
-      };
-      
-      const useInputTerms = async () => {
-        try { 
-          if(state.searchMode === "regular") {
-            if(state.genus && state.species){
-              state.genus = state.genus.replace(/^./, state.genus[0].toUpperCase());
-              state.species = state.species.replace(/./, state.species[0].toLowerCase());
-              const response = await api.get(`/taxon_names`,
-                {params: {
-                  name: state.genus + " " + state.species,
-                  rank: 'NomenclaturalRank::Iczn::SpeciesGroup::Species',
-                  validity: 'true',
-                  exact: 'true',
-                  token: import.meta.env.VITE_APP_API_TOKEN,
-                  project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
-                }})
-              state.apiResults = response.data
-              sortResponse();
-            }
-            else if(state.genus && state.species===''){
-              state.genus = state.genus.replace(/^./, state.genus[0].toUpperCase());
-              const response = await Promise.all([
-                api.get(`/taxon_names`,
-                  {params: {
-                    name: state.genus,
-                    rank: 'NomenclaturalRank::Iczn::GenusGroup::Genus',
-                    validity: 'true',
-                    token: import.meta.env.VITE_APP_API_TOKEN,
-                    project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
-                  }}),
-                api.get(`/taxon_names`,
-                  {params: {
-                    name: state.genus,
-                    rank: 'NomenclaturalRank::Iczn::SpeciesGroup::Species',
-                    validity: 'true',
-                    token: import.meta.env.VITE_APP_API_TOKEN,
-                    project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
-                  }}),
-              ]);
-              const [genusResponse, speciesResponse] = response;
-              state.apiResults = genusResponse.data.concat(speciesResponse.data);
-              sortResponse();
-            }
-            else if(state.species){
-              state.species = state.species.replace(/^./, state.species[0].toLowerCase());
-              state.genus = " ";
-              const response = await api.get(`/taxon_names`,
-                {params: {
-                  name: state.species,
-                  rank: 'NomenclaturalRank::Iczn::SpeciesGroup::Species',
-                  validity: 'true',
-                  token: import.meta.env.VITE_APP_API_TOKEN,
-                  project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
-                }})
-              state.apiResults = response.data;
-              sortResponse();
-            }
-          } else if(state.searchMode === "autocomplete") {
-            
-          }
-        } catch (error) {
-          console.error(`An error occurred when calling useInputTerms: ${error.message}`)
-          console.error(error.stack);
-        }
-      };
-        
-      const displayTaxonPage = (taxonClicked) => {
-        state.taxonClicked = taxonClicked;
-        router.push({ name: 'TaxonPage', query: { taxonID: taxonClicked.id }});
-        state.show = !state.show;
-      };
-      
-      const displayAutocompleteTaxonPage = (result) => {
-        const parser = new DOMParser();
-        const html = parser.parseFromString(result.label_html, 'text/html');
-        const title = html.querySelector('span.otu_tag_taxon_name').title;
-        router.push({ name: 'TaxonPage', query: { taxonID: title }});
-        state.show = !state.show;
       }
-        
-      const sortResponse = () => {
-        state.sortedResponse = state.apiResults.sort((a, b) => {
+    },
+    
+    methods: {
+      async useInputTerms(e) {
+        if(this.searchMode === "regular") {
+          if(this.genus && this.species){
+            this.genus = this.genus.replace(/^./, this.genus[0].toUpperCase());
+            this.species = this.species.replace(/./, this.species[0].toLowerCase());
+            const response = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names?name=${this.genus}%20${this.species}&rank=NomenclaturalRank::Iczn::SpeciesGroup::Species&validity=true&per=250&exact=true&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`)
+            this.apiResults = response.data
+          }
+          else if(this.genus && this.species===''){
+            this.genus = this.genus.replace(/^./, this.genus[0].toUpperCase());
+            this.apiResults = axios
+            const response = await all([
+              axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names?name=${this.genus}&rank=NomenclaturalRank::Iczn::GenusGroup::Genus&validity=true&per=250&nomenclature_code[]=ICZN&nomenclature_group[]=Genus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`),
+              axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names?name=${this.genus}&rank=NomenclaturalRank::Iczn::SpeciesGroup::Species&validity=true&per=250&nomenclature_code[]=ICZN&nomenclature_group[]=Genus&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`)
+            ]);
+            const [genusResponse, speciesResponse] = response;
+            this.apiResults = genusResponse.data.concat(speciesResponse.data);
+            this.sortResponse()
+          }
+          else if(this.species){
+            this.species = this.species.replace(/^./, this.species[0].toLowerCase());
+            this.genus = " ";
+            this.apiResults = axios
+            const response = await axios.get(`https://sfg.taxonworks.org/api/v1/taxon_names?name=${this.species}&rank=NomenclaturalRank::Iczn::SpeciesGroup::Species&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`)
+            response => {
+              this.apiResults = response.data
+              this.sortResponse()
+            }
+          }
+        }
+        else if(this.searchMode === "autocomplete") {
+
+        }
+        this.$refs['taxonPageNameItalicized'].textContent = ''
+        this.$refs['taxonPageNameAuthorYear'].textContent = ''
+      },
+      
+      displayTaxonPage(taxonClicked, show) {
+        this.taxonClicked = taxonClicked
+        this.$router.push({ name: 'TaxonPage', query: { taxonID: taxonClicked.id }});
+        show = !show
+      },
+      
+      sortResponse() {
+        this.sortedResponse = this.apiResults.sort((a, b) =>{
           if (a.cached < b.cached) return -1
           if (a.cached > b.cached) return 1
           return 0
         })
-      }
-        
-      const formatResult = (result) => {
-        const htmlTag = result.htmlTag
-        return `<${htmlTag}>${result.label_html}</${htmlTag}>`
-      }
-        
-      const handleSelection = (item) => {
-          displayTaxonPage(item);
-      }
+      },
       
-      return {
-        ...toRefs(state),
-        fetchAutocompleteResults,
-        useInputTerms,
-        displayTaxonPage,
-        displayAutocompleteTaxonPage,
-        sortResponse,
-        formatResult,
-        handleSelection
-      };
+      async fetchAutocompleteResults () {
+        this.apiResults = axios
+        const response = await axios.get(`https://sfg.taxonworks.org/api/v1/otus/autocomplete?token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ&having_taxon_name_only=true&term=${item}`)
+        this.autocompleteResults = response.data
+      },
+      handleSelection(item) {
+        this.displayTaxonPage(item, show)
+      }
     }
   }
 </script>

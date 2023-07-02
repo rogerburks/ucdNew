@@ -1,4 +1,5 @@
 <!-- This is a row of links that should be positioned below the banner and above any other interactive items-->
+<!-- I have chosen to use the Bootstrap base nav in this component. Other nav options exist-->
 
 <template  v-slot:linkRow>
     <div class="row" name="linkRowContainer">

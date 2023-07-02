@@ -7,9 +7,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-#environemnt variables
-.env
-
 node_modules
 .DS_Store
 dist
