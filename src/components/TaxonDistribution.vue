@@ -8,14 +8,14 @@
 </template>
 
 <script>
-  import axios from "axios"
-  import { computed, ref, reactive, watchEffect, nextTick } from '@vue/runtime-core'
+  import { computed, ref, reactive, watchEffect, onMounted } from 'vue';
   import L from 'leaflet';
   import 'leaflet-providers';
+  import api from '../api.js'
 
   export default {
     name: 'TaxonDistributions',
-    
+
     props: {
       baProp: {
         type: String,
@@ -23,47 +23,27 @@
       }
     },
 
-    data(){
-      return {
-        showTaxonDistributions: true,
-        TaxonDistributionsJson: [],
-        isLoading: true,
-        map: null
-      }
-    },
-    
-    computed: {
-      sortedTaxonDistributions() {
+    setup(props) {
+      const showTaxonDistributions = ref(true);
+      const TaxonDistributionsJson = reactive([]);
+      const isLoading = ref(true);
+      const map = ref(null);
+
+      const sortedTaxonDistributions = computed(() => {
         const uniqueCountries = new Set(
-          this.TaxonDistributionsJson.map(item => item.geographic_area.name)
+          TaxonDistributionsJson.map(item => item.geographic_area.name)
         );
 
         return Array.from(uniqueCountries).sort();
-      },
-      taxonDistributionsResultsExist() {
-        return this.sortedTaxonDistributions && this.sortedTaxonDistributions.length > 0;
-      }
-    },
-    
-    async mounted() {
-      setTimeout(() => {
-        this.isLoading = false;
-        setTimeout(() => {
-          this.initializeMap();
-        }, 0);
-      }, 2000);
-    },
+      });
 
-    methods: {
-      async initializeMap() {
-        this.map = L.map('map').setView([50, 0], 1);
-        
-        const map = this.map; // Assign to a local variable for scoping
+      const initializeMap = async () => {
+        map.value = L.map('map').setView([50, 0], 1);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>', subdomains: 'abcd',
-        }).addTo(map);
-      
+        }).addTo(map.value);
+
         const geoJsonLayer = L.geoJSON(null, {
           style: {
             fillColor: 'orange', // Fill color for highlighted countries
@@ -71,10 +51,10 @@
             color: 'black', // Border color
             weight: 1, // Border weight
           },
-        }).addTo(map);
-        
+        }).addTo(map.value);
+
         watchEffect(() => {
-          const geojsonArray = this.TaxonDistributionsJson.map((item) => {
+          const geojsonArray = TaxonDistributionsJson.map((item) => {
             if (item.geographic_area.shape?.geometry) {
               return item.geographic_area.shape.geometry;
             }
@@ -90,24 +70,49 @@
           });
         });
 
-        this.fetchTaxonDistributions();
-      },
-      async fetchTaxonDistributions() {
-        if (this.baProp){
-          const tdResponse = await axios.get(`https://sfg.taxonworks.org/api/v1/asserted_distributions?${this.baProp}&embed[]=shape&extend[]=geographic_area&geo_json=true&token=e1KivaZS6fvxFYVaqLXmCA&project_token=adhBi59dc13U7RxbgNE5HQ`);
-          let newData = await tdResponse.data;
+        await fetchTaxonDistributions();
+      };
+
+      const fetchTaxonDistributions = async () => {
+        if (props.baProp) {
+          const tdResponse = await api.get(`/asserted_distributions?${props.baProp}`,
+            {params: {
+              embed: ["shape"],
+              extend: ["eographic_area"],
+              geo_json: "true",
+              token: import.meta.env.VITE_APP_API_TOKEN,
+              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN,
+            }}                                 
+          );
+          const newData = tdResponse.data;
 
           // Make sure Vue's reactivity system acknowledges the change
-          this.TaxonDistributionsJson = [];
-          this.TaxonDistributionsJson = newData;
+          TaxonDistributionsJson.length = 0;
+          TaxonDistributionsJson.push(...newData);
         }
-      },
-    },
-    
-    watch: {
-      async baProp() {
-        await this.fetchTaxonDistributions();
-      }
+      };
+
+      onMounted(async () => {
+        setTimeout(() => {
+          isLoading.value = false;
+          setTimeout(() => {
+            initializeMap();
+          }, 0);
+        }, 2000);
+      });
+
+      watchEffect(() => {
+        fetchTaxonDistributions();
+      });
+
+      return {
+        showTaxonDistributions,
+        TaxonDistributionsJson,
+        isLoading,
+        sortedTaxonDistributions,
+        map,
+        initializeMap
+      };
     }
-  }
+  };
 </script>
