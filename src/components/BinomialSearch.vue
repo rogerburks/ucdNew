@@ -37,19 +37,7 @@
     </div>
   </div>
   <br>
-  <div class="row" ref="containerOfResults" name="binomialSearchResultsContainer">
-    <div class="col-12 bd-highlight align-items-start" id="results-list-div" ref="resultsList">
-      <span id="results-list-span"><br>
-      <li style="list-style-type:none" v-for="(item, index) in apiResults" :key="item.id"><a style="text-decoration:underline; color: var(--bs-link-color);" @click="displayTaxonPage(apiResults[index]), show=!show"><i>{{ apiResults[index].cached }}</i> {{ apiResults[index].cached_author_year }}</a></li>
-      </span>
-    </div>
-    <div class="col-xs-12 bd-highlight" id="taxon-page-div" ref="taxonPage">
-      <div>
-        <span id="taxon-page-italicized-name" style="font-size:large; font-style: italic; font-weight: 600;"><strong></strong> </span>
-        <span id="taxon-page-author-year" style="font-size:large; font-style: normal; font-weight: 600;"></span>
-      </div>
-    </div>
-  </div>
+  <searchResults :srProp="apiResults"></searchResults>
 </template>
 
 <style scoped>
@@ -89,13 +77,20 @@
   }
 </style>
   
-<script>
+<script> 
   import { computed, ref, reactive } from '@vue/runtime-core'
   import api from '/api.js'
   import { useRouter } from 'vue-router'
   import { toRefs } from '@vue/reactivity'
+  import SearchResults from './SearchResults.vue'
 
   export default {
+    name: 'BinomialSearch',
+    
+    components: {
+      SearchResults
+    },
+    
     setup() {
       const state = reactive({
         show: true,
@@ -193,12 +188,6 @@
           console.error(`An error occurred when calling useInputTerms: ${error.message}`)
           console.error(error.stack);
         }
-      };
-        
-      const displayTaxonPage = (taxonClicked) => {
-        state.taxonClicked = taxonClicked;
-        router.push({ name: 'TaxonPage', query: { taxonID: taxonClicked.id }});
-        state.show = !state.show;
       };
       
       const displayAutocompleteTaxonPage = (result) => {
