@@ -42,9 +42,10 @@ const routes = [{
         props: true
     },
     {
-        path: '/taxonResults',
-        name: 'TaxonSearchResults',
-        component: SearchResults
+        path: '/searchResults',
+        name: 'SearchResults',
+        component: SearchResults,
+        props: true
     },
     {
         path: '/biologicalAssociations',

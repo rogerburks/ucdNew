@@ -1,8 +1,8 @@
 <template v-slot:taxonPage>
   <div class="row">
     <div class="col-12">
-      <h3 v-if="italicized && taxonViewed"><i>{{ taxonViewed[0].cached }}</i> {{ taxonViewed[0].cached_author_year }}</h3>
-      <h3 v-else-if="taxonViewed">{{ taxonViewed[0].cached }} {{ taxonViewed[0].cached_author_year }}</h3>
+      <h3 v-if="italicized && taxonViewed[0]"><i>{{ taxonViewed[0].cached }}</i> {{ taxonViewed[0].cached_author_year }}</h3>
+      <h3 v-else-if="taxonNamesWithOtusData[0]"><span v-html="taxonNamesWithOtusData[0].cached_html"></span><span>&nbsp;{{ taxonNamesWithOtusData[0].cached_author_year }}></span></h3>
     </div>
   </div>
   <br>
@@ -98,7 +98,7 @@
         otusRetrieved: [],
         showSynonyms: true,
         otuIDChain: '',
-        taxonViewed: '',
+        taxonViewed: [],
         synonymUnsorted: [],
       })
       
@@ -144,6 +144,11 @@
           }
           
           console.log('taxonIDChain after combinationResponse is: ' + state.taxonIDChain);
+          
+          if(state.taxonIDChain.length === 0){
+            state.taxonIDChain.push(taxonID)
+            console.log('The synonynm finder loops did not find any taxon IDs. Therefore, this step has added the primary taxon ID to taxonIDChain.')
+          }
           
           const taxonNamesWithOtus = await api.get(`/taxon_names`,
           {params: {

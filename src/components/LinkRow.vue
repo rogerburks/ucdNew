@@ -11,10 +11,10 @@
               <router-link :to ="{name: 'BinomialSearch'} " class="nav-link">Search names</router-link>
             </li>
             <li class="nav-item">
-              <router-link :to ="{name: 'AssociatesSearch'} " class="nav-link">Search biological associates</router-link>
+              <router-link :to ="{name: 'AssociatesSearch'} " class="nav-link">Search non-animal associates</router-link>
             </li>
             <li class="nav-item">
-              <router-link :to ="{name: 'DistributionSearch'} " class="nav-link">Search by country</router-link>
+              <router-link :to ="{name: 'DistributionSearch'} " class="nav-link">Browse by country</router-link>
             </li>
             <li class="nav-item">
               <router-link :to ="{name: 'KeywordSearch'} " class="nav-link">Search keywords</router-link>
@@ -23,3 +23,10 @@
         <router-view></router-view>
     </div>
 </template>
+
+<style scoped>
+  .nav-link.router-link-active {
+    background-color: #ccc;
+    color: #000;
+  }
+</style>

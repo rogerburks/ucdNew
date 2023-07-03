@@ -49,11 +49,13 @@
           const baResponse = await api.get(`/biological_associations?${newVal}`,
             {params: {
               extend: ["object", "subject", "biological_relationship", "taxonomy", "biological_relationship_types", "citations"],
+              per: "1000",
               token: import.meta.env.VITE_APP_API_TOKEN,
               project_token: import.meta.env.VITE_APP_PROJECT_TOKEN,
             }}
           );
           let newData = await baResponse.data;
+          console.log(baResponse.headers['pagination-total-pages']);
           state.biologicalAssociationsJson = newData;
         }
       }, { immediate: true });

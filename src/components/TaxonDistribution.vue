@@ -80,6 +80,7 @@
               embed: ["shape"],
               extend: ["eographic_area"],
               geo_json: "true",
+              per: "2000",
               token: import.meta.env.VITE_APP_API_TOKEN,
               project_token: import.meta.env.VITE_APP_PROJECT_TOKEN,
             }}                                 
