@@ -12,7 +12,7 @@
         {{ country.name }}
       </a>
       <ul v-if="openCountries[country.id]">
-        <li @click="fetchDistributions(region.id), nothingClicked = !nothingClicked" v-for="region in country.regions" :key="region.id" >
+        <li @click="fetchDistributions(region.id, region.name), nothingClicked = !nothingClicked" v-for="region in country.regions" :key="region.id" >
           <a style="text-decoration:underline; color: var(--bs-link-color);"  id="itemRegion">
             {{ region.name }}
           </a>
@@ -21,6 +21,8 @@
     </li>
   </ul>
   <ul v-else>
+    <li><b><a style="text-decoration:underline; color: var(--bs-link-color);" @click="nothingClicked = !nothingClicked">Return to country list</a></b></li>
+    <li><b>Chalcidoid taxa present in: {{ headerName }} </b></li>
     <li v-for="(item, index) in dsList" :key="index">
       <span v-for="char, subIndex in splitText(item.otu.taxon_name)" :key="subIndex" :style="{fontStyle: char.shouldItalicize ? 'italic' : 'normal'}">
         <a style="text-decoration:underline; color: var(--bs-link-color);" @click="displayTaxonPage(item.otu.taxon_name_id)">
@@ -81,7 +83,9 @@
         geographic_area_id: '',
         dsList: [],
         countryResult: [],
-        nothingClicked: true
+        nothingClicked: true,
+        region: [],
+        headerName: ''
       });
       
       const router = useRouter();      
@@ -98,13 +102,13 @@
       
       function toggleCountry(id) {
         openCountries.value[id] = !openCountries.value[id];
-      }
+      };
       
       const areaClick = (clickedCountry) => {
         state.geographic_area_id = state.countries.find(c => c.id === clickedCountry);
-      }
+      };
       
-      const fetchDistributions = async (geographic_area_id) => {
+      const fetchDistributions = async (geographic_area_id, headerName) => {
         const response = await api.get(`/asserted_distributions`, {
           params: {
             geographic_area_id: geographic_area_id,
@@ -115,7 +119,7 @@
         });
         state.countryResult = await response.data;
         state.dsList = state.countryResult;
-        console.log("I pushed it like this: " + state.dsList);
+        state.headerName = headerName;
       };
                               
       const splitText = (formatted) => {

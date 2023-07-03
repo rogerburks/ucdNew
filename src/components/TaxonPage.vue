@@ -2,7 +2,7 @@
   <div class="row">
     <div class="col-12">
       <h3 v-if="italicized && taxonViewed[0]"><i>{{ taxonViewed[0].cached }}</i> {{ taxonViewed[0].cached_author_year }}</h3>
-      <h3 v-else-if="taxonNamesWithOtusData[0]"><span v-html="taxonNamesWithOtusData[0].cached_html"></span><span>&nbsp;{{ taxonNamesWithOtusData[0].cached_author_year }}></span></h3>
+      <h3 v-else-if="taxonNamesWithOtusData[0]"><span v-html="taxonNamesWithOtusData[0].cached_html"></span><span>&nbsp;{{ taxonNamesWithOtusData[0].cached_author_year }}</span></h3>
     </div>
   </div>
   <br>
