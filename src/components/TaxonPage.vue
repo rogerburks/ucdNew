@@ -4,19 +4,22 @@
       v-for="(breadcrumb, index) in reversedBreadcrumbs"
         :key="breadcrumb.id"
         :class="{ italicizeBreadcrumb: breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' }">
-        <router-link :to="{ name: 'TaxonPage', query: { taxonID: breadcrumb.id }}" @click="reloadTaxonPage">
+        <router-link :to="{ name: 'TaxonPage', query: { taxonID: breadcrumb.id }}" v-if="breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::FamilyGroup::Subfamily' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::FamilyGroup::Family' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::FamilyGroup::Superfamily' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::FamilyGroup::Subfamily' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::FamilyGroup::Family' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::FamilyGroup::Superfamily'">
           {{ breadcrumb.name }}
         </router-link>
-      <span v-if="index < breadcrumbsIDs.length - 1"> > </span>
+        <span v-else>
+          {{ breadcrumb.name }}
+        </span>
+      <span v-if="index < reversedBreadcrumbs.length - 1"> > </span>
     </span>
   </div>
   <div class="row">
     <div class="col-12">
       <h3 v-if="italicized && taxonViewed[0]"><i>{{ taxonViewed[0].cached }}</i> {{ taxonViewed[0].cached_author_year }}</h3>
+      <h3 v-else-if="taxonViewed[0]">{{ taxonViewed[0].cached }} {{ taxonViewed[0].cached_author_year }}</h3>
       <h3 v-else-if="taxonNamesWithOtusData && taxonNamesWithOtusData.length"><span v-html="taxonNamesWithOtusData[0].cached_html"></span><span>&nbsp;{{ taxonNamesWithOtusData[0].cached_author_year }}</span></h3>
     </div>
   </div>
-  <br>
   <div class="row">
     <div class="col-md-8" id="stationaryDiv">
       <div ref="containerOfSynonyms" name="taxonPageSynonymsContainer">
@@ -39,7 +42,7 @@
         </div>
     </div>
     <nomenclaturalReferences v-if="nomenclaturalReferencesResults" :nrProp="nomenclaturalReferencesResults"></nomenclaturalReferences>
-    <div class="col-md-8" id="stationaryDiv" v-if="isOtuIDChainPopulated"><biological-associations :baProp="otuIDChain"></biological-associations></div>
+    <div v-if="isOtuIDChainPopulated"><biological-associations :baProp="otuIDChain"></biological-associations></div>
       <div v-else><img src="/spinning-circles.svg" alt="Loading..." width="75"></div>
     </div>
     <div class="col-md-4" id="movingDiv" >
@@ -51,16 +54,18 @@
 
 <style>
 @media (min-width: 1537px) {
-  .stationaryDiv {
-    flex: 0 0 66.66667%;
-    max-width: 66.66667%;
-    padding-right: 15px;
+  #stationaryDiv {
+    flex: 0 0 64%;
+    max-width: 64%;
+    padding-left: 0px;
+    padding-right: 0px;
   }
 
-  .movingDiv {
+  #movingDiv {
     flex: 0 0 33.33333%;
     max-width: 33.33333%;
-    padding-left: 15px;
+    padding-left: 0px;
+    padding-right: 0px;
   }
 }
 
@@ -292,8 +297,7 @@
         nomenclaturalReferencesResults, 
         italicized, 
         resultsExist,
-        breadcrumbsNamer,
-        reloadTaxonPage
+        breadcrumbsNamer
       };
     }
   }

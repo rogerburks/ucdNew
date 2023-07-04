@@ -1,7 +1,7 @@
 <!-- This is a row of links that should be positioned below the banner and above any other interactive items-->
 <!-- I have chosen to use the Bootstrap base nav in this component. Other nav options exist-->
 
-<template  v-slot:linkRow>
+<template>
     <div class="row" name="linkRowContainer">
         <ul class = "nav">
           <li class="nav-item">
@@ -20,7 +20,6 @@
               <router-link :to ="{name: 'KeywordSearch'} " class="nav-link">Search keywords</router-link>
             </li>
         </ul>
-        <router-view></router-view>
     </div>
 </template>
 

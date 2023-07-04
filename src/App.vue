@@ -1,18 +1,20 @@
-<script setup>
+<script>
+  import Everything from './components/Everything.vue';
   import LinkRow from './components/LinkRow.vue';
+  
+  export default {
+    components: {
+      Everything,
+      LinkRow
+    }
+  }
 </script>
 
 <template>
   <div class="banner" src="./components/images/chalcidBanner.jpg" alt="Banner Image"></div>
-  <div id="app" class="row">
-      <div class="col-12" name="linkRowContainer">
-        <slot name="linkRow"></slot>
-        <LinkRow />
-      </div>
-      <div class="col-12" name="contentContainer">
-        <slot name="search"></slot>
-        <slot name="taxonPage"></slot>
-      </div>
+  <div id="app">
+    <LinkRow></LinkRow>
+    <router-view :key="$route.fullPath"></router-view>
   </div>
 </template>
 
@@ -54,6 +56,10 @@ header {
   
   .nav-item {
     display: inline-block;
+  }
+  
+  #app {
+    padding: 0%
   }
 }
 </style>

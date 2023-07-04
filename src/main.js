@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import { createRouter, createWebHashHistory } from 'vue-router';
 import App from './App.vue';
+import Everything from './components/Everything.vue';
 import HomePage from './components/HomePage.vue';
 import BinomialSearch from './components/BinomialSearch.vue';
 import TaxonPage from './components/TaxonPage.vue';
@@ -21,6 +22,11 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 library.add(faAngleDown, faAngleRight);
 
 const routes = [{
+        path:'/everything',
+        name: 'Everything',
+        component: Everything
+    },
+    {
         path: '/',
         name: 'Home',
         component: HomePage

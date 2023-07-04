@@ -1,7 +1,7 @@
 <template v-slot:searchResults>
   <div class="row" ref="containerOfResults" name="associatesSearchResultsContainer">
     <div class="col-12 bd-highlight align-items-start" id="results-list-div" ref="resultsList">
-    <span id="results-list-span"><br>
+    <span id="results-list-span">
       <li style="list-style-type:none" v-if="srProp" v-for="(taxonNameItem, index) in srProp" :key="taxonNameItem.id"><a style="text-decoration:underline; color: var(--bs-link-color);" @click="displayTaxonPage(srProp[index]), show=!show"><i>{{ srProp[index].cached }}</i> {{ srProp[index].cached_author_year }}</a></li>
       <span v-else>No search results have been returned yet.</span>
     </span>
