@@ -74,7 +74,7 @@
   </style>
     
   <script>
-    import { computed, ref, reactive } from '@vue/runtime-core'
+    import { reactive } from '@vue/runtime-core'
     import api from '/api.js'
     import { useRouter } from 'vue-router'
     import { toRefs } from '@vue/reactivity'

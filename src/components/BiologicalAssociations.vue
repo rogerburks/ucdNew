@@ -21,7 +21,7 @@
 </template>
 
 <script>
-  import { watch, computed, reactive, toRefs } from 'vue'
+  import { computed, reactive, toRefs, onMounted, nextTick } from 'vue'
   import api from '/api.js'
 
   export default {
@@ -44,9 +44,9 @@
         .map(association => ((association.object.object_tag.replace(" &#10003;", "").replace(" &#10060;", "").replace(" [c]", "") + " is a " + association.biological_relationship.object_label.toLowerCase() + " of " + association.subject.object_tag).toString().replace(" &#10003;", "").replace(" &#10060;", "").replace(" [c]", "") + ", (" + association.citations[0].citation_source_body + ")").replace("a associate", "an associate"));
       });
       
-      watch(() => props.baProp, async (newVal, oldVal) => {
-        if (newVal) {
-          const baResponse = await api.get(`/biological_associations?${newVal}`,
+      onMounted(async () => {   
+        nextTick();     
+        const baResponse = await api.get(`/biological_associations?${props.baProp}`,
             {params: {
               extend: ["object", "subject", "biological_relationship", "taxonomy", "biological_relationship_types", "citations"],
               per: "1000",
@@ -54,11 +54,10 @@
               project_token: import.meta.env.VITE_APP_PROJECT_TOKEN,
             }}
           );
-          let newData = await baResponse.data;
-          console.log(baResponse.headers['pagination-total-pages']);
-          state.biologicalAssociationsJson = newData;
-        }
-      }, { immediate: true });
+        console.log("baProp at the time of the BiologicalAssociations api call is: " + props.baProp)
+        let newData = await baResponse.data;
+        state.biologicalAssociationsJson = await newData;
+      });
       
       return { 
         ...toRefs(state),

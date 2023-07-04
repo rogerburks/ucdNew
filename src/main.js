@@ -31,15 +31,14 @@ const routes = [{
         component: BinomialSearch
     },
     {
-        path: '/taxon',
-        name: 'TaxonPage',
+        path: '/taxon/:taxonID',
         component: TaxonPage,
         props: true
     },
     {
-        path: '/taxon:taxonID',
-        component: TaxonPage,
-        props: true
+        path: '/taxon',
+        name: 'TaxonPage',
+        component: TaxonPage
     },
     {
         path: '/searchResults',

@@ -78,7 +78,7 @@
 </style>
   
 <script> 
-  import { computed, ref, reactive } from '@vue/runtime-core'
+  import { reactive } from '@vue/runtime-core'
   import api from '/api.js'
   import { useRouter } from 'vue-router'
   import { toRefs } from '@vue/reactivity'
@@ -210,20 +210,14 @@
         const htmlTag = result.htmlTag
         return `<${htmlTag}>${result.label_html}</${htmlTag}>`
       }
-        
-      const handleSelection = (item) => {
-          displayTaxonPage(item);
-      }
       
       return {
         ...toRefs(state),
         fetchAutocompleteResults,
         useInputTerms,
-        displayTaxonPage,
         displayAutocompleteTaxonPage,
         sortResponse,
-        formatResult,
-        handleSelection
+        formatResult
       };
     }
   }

@@ -1,43 +1,48 @@
-<template template v-slot:TaxonDistribution>
-  <div v-if="isLoading">
-  </div>
-  <div v-else>
-    <span style="width: 600px; display:inline-block;">Distribution: {{ sortedTaxonDistributions.join(', ') }}</span>
-    <div id="map" class="leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom" :class="{'hidden': isLoading}" style="width: 600px; height: 400px; position: relative; outline-style: none;"></div>
+<template v-slot:TaxonDistribution>
+  <div>
+    <span v-show="!isLoading" style="width: 600px; display:inline-block;">Distribution: {{ sortedTaxonDistributions.join(', ') }}</span>
+    <span v-show="isLoading">Please wait for the map to load...</span>
+    <div id="map" class="leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom" style="width: 600px; height: 400px; position: relative; outline-style: none;"></div>
   </div>
 </template>
 
 <script>
-  import { computed, ref, reactive, watchEffect, onMounted } from 'vue';
+  import { computed, ref, reactive, watchEffect, onMounted, toRefs } from 'vue';
   import L from 'leaflet';
   import 'leaflet-providers';
-  import api from '/api.js'
+  import api from '/api.js';
 
   export default {
     name: 'TaxonDistributions',
 
     props: {
-      baProp: {
-        type: String,
-        required: true
-      }
+      baProp: String
     },
 
     setup(props) {
-      const showTaxonDistributions = ref(true);
-      const TaxonDistributionsJson = reactive([]);
-      const isLoading = ref(true);
       const map = ref(null);
+      
+      const state = reactive({
+        isLoading: true,
+        taxonDistributionsJson: [],
+        showTaxonDistributions: true
+      });
 
       const sortedTaxonDistributions = computed(() => {
         const uniqueCountries = new Set(
-          TaxonDistributionsJson.map(item => item.geographic_area.name)
+          state.taxonDistributionsJson.map(item => item.geographic_area.name)
         );
 
         return Array.from(uniqueCountries).sort();
       });
 
       const initializeMap = async () => {
+        if (!document.getElementById('map')) {
+          console.error("Map container not found.");
+          return;
+        }
+        else{"the function was at least called"}
+        
         map.value = L.map('map').setView([50, 0], 1);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -52,9 +57,11 @@
             weight: 1, // Border weight
           },
         }).addTo(map.value);
+        
+        state.isLoading = false
 
         watchEffect(() => {
-          const geojsonArray = TaxonDistributionsJson.map((item) => {
+          const geojsonArray = state.taxonDistributionsJson.map((item) => {
             if (item.geographic_area.shape?.geometry) {
               return item.geographic_area.shape.geometry;
             }
@@ -69,8 +76,6 @@
             }
           });
         });
-
-        await fetchTaxonDistributions();
       };
 
       const fetchTaxonDistributions = async () => {
@@ -86,33 +91,23 @@
             }}                                 
           );
           const newData = tdResponse.data;
-
-          // Make sure Vue's reactivity system acknowledges the change
-          TaxonDistributionsJson.length = 0;
-          TaxonDistributionsJson.push(...newData);
+          state.taxonDistributionsJson.length = 0;
+          state.taxonDistributionsJson.push(...newData);
+          
+          initializeMap();
         }
       };
 
       onMounted(async () => {
-        setTimeout(() => {
-          isLoading.value = false;
-          setTimeout(() => {
-            initializeMap();
-          }, 0);
-        }, 2000);
-      });
-
-      watchEffect(() => {
-        fetchTaxonDistributions();
+        await fetchTaxonDistributions();
       });
 
       return {
-        showTaxonDistributions,
-        TaxonDistributionsJson,
-        isLoading,
+        ...toRefs(state),
         sortedTaxonDistributions,
         map,
-        initializeMap
+        initializeMap,
+        fetchTaxonDistributions
       };
     }
   };

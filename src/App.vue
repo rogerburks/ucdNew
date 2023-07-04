@@ -4,17 +4,15 @@
 
 <template>
   <div class="banner" src="./components/images/chalcidBanner.jpg" alt="Banner Image"></div>
-  <div class="row">
-    <div class="col-12" name="linkRowContainer">
-      <slot name="linkRow"></slot>
-      <LinkRow />
-    </div>
-    <div class="col-12" name="contentContainer">
-      <slot name="search"></slot>
-      <keep-alive>
+  <div id="app" class="row">
+      <div class="col-12" name="linkRowContainer">
+        <slot name="linkRow"></slot>
+        <LinkRow />
+      </div>
+      <div class="col-12" name="contentContainer">
+        <slot name="search"></slot>
         <slot name="taxonPage"></slot>
-      </keep-alive>
-    </div>
+      </div>
   </div>
 </template>
 
