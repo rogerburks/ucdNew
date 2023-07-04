@@ -7,7 +7,7 @@ import BinomialSearch from './components/BinomialSearch.vue';
 import TaxonPage from './components/TaxonPage.vue';
 import SearchResults from './components/SearchResults.vue';
 import BiologicalAssociations from './components/BiologicalAssociations.vue';
-import NomenclaturalReferences from './components/NomenclaturalReferences.vue';
+import References from './components/References.vue';
 import TaxonDistribution from './components/TaxonDistribution.vue';
 import AssociatesSearch from './components/AssociatesSearch.vue';
 import DistributionSearch from './components/DistributionSearch.vue';
@@ -63,9 +63,9 @@ const routes = [{
         component: TaxonDistribution
     },
     {
-        path: '/nomenclaturalReferences',
-        name: 'NomenclaturalReferences',
-        component: NomenclaturalReferences
+        path: '/references',
+        name: 'References',
+        component: References
     },
     {
         path: '/associatesSearch',

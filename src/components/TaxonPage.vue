@@ -4,7 +4,7 @@
       v-for="(breadcrumb, index) in reversedBreadcrumbs"
         :key="breadcrumb.id"
         :class="{ italicizeBreadcrumb: breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' }">
-        <router-link :to="{ name: 'TaxonPage', query: { taxonID: breadcrumb.id }}" v-if="breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::FamilyGroup::Subfamily' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::FamilyGroup::Family' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::FamilyGroup::Superfamily' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::FamilyGroup::Subfamily' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::FamilyGroup::Family' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::FamilyGroup::Superfamily'">
+        <router-link :to="{ name: 'TaxonPage', query: { taxonID: breadcrumb.id }}" v-if="breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::GenusGroup::Genus'">
           {{ breadcrumb.name }}
         </router-link>
         <span v-else>
@@ -41,12 +41,12 @@
           </div>
         </div>
     </div>
-    <nomenclaturalReferences v-if="nomenclaturalReferencesResults" :nrProp="nomenclaturalReferencesResults"></nomenclaturalReferences>
-    <div v-if="isOtuIDChainPopulated"><biological-associations :baProp="otuIDChain"></biological-associations></div>
+    <references v-if="nomenclaturalReferencesResults" :nr-Prop="nomenclaturalReferencesResults"></references>
+    <div v-if="isTaxonIDChainPopulated"><biological-associations :ba-Prop="taxonIDChain"></biological-associations></div>
       <div v-else><img src="/spinning-circles.svg" alt="Loading..." width="75"></div>
     </div>
-    <div class="col-md-4" id="movingDiv" >
-      <div v-if="isOtuIDChainPopulated"><taxon-distribution v-if="isOtuIDChainPopulated" :baProp="otuIDChain"></taxon-distribution></div>
+    <div class="col-md-4" id="movingDiv" v-if="taxonViewed[0] && (taxonViewed[0].rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || taxonViewed[0].rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species')">
+      <div v-if="isTaxonIDChainPopulated"><taxon-distribution v-if="isTaxonIDChainPopulated" :ba-Prop="taxonIDChain"></taxon-distribution></div>
       <div v-else><img src="/spinning-circles.svg" alt="Loading..." width="75"></div>
     </div>
   </div>
@@ -85,7 +85,7 @@
   import { onMounted, reactive, computed, getCurrentInstance } from 'vue'
   import api from '/api.js'
   import BiologicalAssociations from './BiologicalAssociations.vue'
-  import NomenclaturalReferences from "./NomenclaturalReferences.vue"
+  import References from "./References.vue"
   import TaxonDistribution from "./TaxonDistribution.vue"
   import { useRoute } from 'vue-router';
   import { toRefs } from '@vue/reactivity';
@@ -95,7 +95,7 @@
     
     components: {
       BiologicalAssociations,
-      NomenclaturalReferences,
+      References,
       TaxonDistribution
     },
     
@@ -127,9 +127,11 @@
         breadcrumbsNamerData: [],
         reversedBreadcrumbs: [],
         breadcrumbsResponse: [],
-        isOtuIDChainPopulated: false,
+        isTaxonIDChainPopulated: false,
         taxonPageKey: 1
       })
+      
+      const route = useRoute();
       
       onMounted(async () => {
         const taxonID = route.query.taxonID;
@@ -236,8 +238,8 @@
           
           console.log('otuIDChain is: ' + state.otuIDChain);
           
-          if(state.otuIDChain.length > 0) {
-            state.isOtuIDChainPopulated = !state.otuIDChecker; 
+          if(state.taxonIDChain.length > 0) {
+            state.isTaxonIDChainPopulated = !state.isTaxonIDChainPopulated; 
           }
 
           const synonymResponse = await api.get(`/taxon_names/${taxonID}/inventory/catalog`,
@@ -272,8 +274,6 @@
         return false;
       });
       
-      const route = useRoute();
-      
       const resultsExist = computed(() => route.query.taxonID !== undefined && route.query.taxonID !== null);
       
       const breadcrumbsNamer = async () => {
@@ -297,7 +297,8 @@
         nomenclaturalReferencesResults, 
         italicized, 
         resultsExist,
-        breadcrumbsNamer
+        breadcrumbsNamer,
+        route
       };
     }
   }

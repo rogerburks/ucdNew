@@ -1,24 +1,22 @@
-<!-- This component handles searches and displays search results -->
-<!-- Stop italicizing family-group names in returned results  -->
-<!-- Add new box for searching higher taxa, instead of making people use the genus box  -->
-<!-- I have decided for the moment to include search results with the component. This may change later if I want to have a catch-all search results component for all searching components -->
 <template v-slot:search>
   <div class="row" ref="containerOfComponent" v-show="show" name="binomialSearchContainer">
     <fieldset>
       <legend>Search Mode</legend>
       <div>
         <input type="radio" id="regular-search" value="regular" v-model="searchMode" />
-        <label style="padding-left: 2px; padding-right: 15px;" for="regular-search">Regular search</label>
+        <label style="padding-left: 2px; padding-right: 15px;" for="regular-search">Regular search (higher taxa mutually exclusive)</label>
         <input type="radio" id="autocomplete-search" value="autocomplete" v-model="searchMode" />
         <label style="padding-left: 2px;" for="autocomplete-search">Autocomplete (wait for results to appear under search field)</label>
       </div>
     </fieldset>
-    <div v-if="searchMode === 'regular'" class="col-12" ref="containerOfInputGroup">
+    <div v-if="searchMode === 'regular'" class="col-6" ref="containerOfInputGroup">
       <div class="input-group mb-3 align-items-start" id="binomial-search-group">
-        <span class="input-group-text" id="genus-input-label">genus</span>
-        <input type="text" class="form-control" id="binomial-search-input" aria-describedby="genus-input" v-model="genus" @keyup.enter="useInputTerms($event)" />
-        <span class="input-group-text" id="species-input-label">species</span>
-        <input type="text" class="form-control" id="binomial-search-input" aria-describedby="species-input" v-model="species" @keyup.enter="useInputTerms($event)" />
+        <span v-show="!family" class="input-group-text" id="genus-input-label">genus</span>
+        <input v-show="!family" type="text" class="form-control" id="binomial-search-input" aria-describedby="genus-input" v-model="genus" @keyup.enter="useInputTerms($event)" />
+        <span  v-show="!family" class="input-group-text" id="species-input-label">species</span>
+        <input  v-show="!family" type="text" class="form-control" id="binomial-search-input" aria-describedby="species-input" v-model="species" @keyup.enter="useInputTerms($event)" />
+        <span v-show="!genus && !species" class="input-group-text" id="species-input-label">higher taxa</span>
+        <input v-show="!genus && !species" type="text" class="form-control" id="binomial-search-input" aria-describedby="species-input" v-model="family" @keyup.enter="useInputTerms($event)" />
         <button class="btn btn-outline-secondary" type="button" id="binomial-search-button" @click="useInputTerms($event)">search</button>
       </div>
     </div>
@@ -37,7 +35,8 @@
     </div>
   </div>
   <br>
-  <searchResults :srProp="apiResults"></searchResults>
+  <searchResults v-show="!blankResults" :srProp="apiResults"></searchResults>
+  <span v-show="blankResults">No results were returned</span>
 </template>
 
 <style scoped>
@@ -73,7 +72,7 @@
   }
   
   #binomial-search-input {
-    max-width: 500px;
+    max-width: 250x;
   }
 </style>
   
@@ -97,6 +96,7 @@
         searchMode: "regular",
         genus: '',
         species: '',
+        family: '',
         apiResults: [],
         listClickedText: '',
         taxonClicked: [],
@@ -104,7 +104,8 @@
         sortedResponse: [],
         showDropdown: false,
         searchTerm: '',
-        autocompleteResults: []
+        autocompleteResults: [],
+        blankResults: false
       });
       
       const router = useRouter();
@@ -181,7 +182,26 @@
               state.apiResults = response.data;
               sortResponse();
             }
-          } else if(state.searchMode === "autocomplete") {
+            else if(state.family){
+              state.family = state.family.replace(/^./, state.family[0].toUpperCase());
+              const response = await api.get(`/taxon_names`,
+                {params: {
+                  name: state.family,
+                  rank: ['NomenclaturalRank::Iczn::FamilyGroup::Family','NomenclaturalRank::Iczn::FamilyGroup::Subfamily','NomenclaturalRank::Iczn::FamilyGroup::Tribe','NomenclaturalRank::Iczn::FamilyGroup::Subtribe','NomenclaturalRank::Iczn::FamilyGroup::Superfamily'],
+                  token: import.meta.env.VITE_APP_API_TOKEN,
+                  project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+                }})
+              state.apiResults = response.data;
+              sortResponse();
+            }
+            if(state.apiResults.length === 0){
+              state.blankResults = true;
+            }
+            else{
+              state.blankResults = false;
+            }
+          } 
+          else if(state.searchMode === "autocomplete") {
             
           }
         } catch (error) {

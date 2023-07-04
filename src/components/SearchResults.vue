@@ -2,15 +2,14 @@
   <div class="row" ref="containerOfResults" name="associatesSearchResultsContainer">
     <div class="col-12 bd-highlight align-items-start" id="results-list-div" ref="resultsList">
     <span id="results-list-span">
-      <li style="list-style-type:none" v-if="srProp" v-for="(taxonNameItem, index) in srProp" :key="taxonNameItem.id"><a style="text-decoration:underline; color: var(--bs-link-color);" @click="displayTaxonPage(srProp[index]), show=!show"><i>{{ srProp[index].cached }}</i> {{ srProp[index].cached_author_year }}</a></li>
+      <li style="list-style-type:none" 
+        v-if="srProp" 
+        v-for="(taxonNameItem, index) in srProp" 
+          :key="taxonNameItem.id">
+          <a style="text-decoration:underline; color: var(--bs-link-color);" @click="displayTaxonPage(srProp[index]), show=!show">
+          <span v-if="srProp[index].rank_string==='NomenclaturalRank::Iczn::GenusGroup::Genus' || srProp[index].rank_string==='NomenclaturalRank::Iczn::SpeciesGroup::Species'"><i>{{ srProp[index].cached }}</i></span><span v-else>{{ srProp[index].cached }}</span> {{ srProp[index].cached_author_year }}</a></li>
       <span v-else>No search results have been returned yet.</span>
     </span>
-    </div>
-    <div class="col-xs-12 bd-highlight" id="taxon-page-div" ref="taxonPage">
-    <div>
-        <span id="taxon-page-italicized-name" style="font-size:large; font-style: italic; font-weight: 600;"><strong></strong> </span>
-        <span id="taxon-page-author-year" style="font-size:large; font-style: normal; font-weight: 600;"></span>
-    </div>
     </div>
   </div>
 </template>

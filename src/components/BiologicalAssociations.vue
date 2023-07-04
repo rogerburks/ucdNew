@@ -18,50 +18,71 @@
       </div>
     </div>
   </div>
+  <references :bar-Prop="baReferences"></references>
 </template>
 
 <script>
   import { computed, reactive, toRefs, onMounted, nextTick } from 'vue'
   import api from '/api.js'
+  import References from './References.vue';
 
   export default {
     name: 'BiologicalAssociations',
     
     props: {
-      baProp: String
+      baProp: Array
+    },
+    
+    components: {
+      References
     },
     
     setup(props) {
       const state = reactive({
         showBiologicalAssociations: true,
-        biologicalAssociationsJson: []
+        biologicalAssociationsJson: [],
+        baReferences: []
       });
       
       const sortedBiologicalAssociations = computed(() => {
         return state.biologicalAssociationsJson
-        .filter(association => association.biological_relationship.name !== "compared with")
-        .filter(association => association.object.object_tag)
-        .map(association => ((association.object.object_tag.replace(" &#10003;", "").replace(" &#10060;", "").replace(" [c]", "") + " is a " + association.biological_relationship.object_label.toLowerCase() + " of " + association.subject.object_tag).toString().replace(" &#10003;", "").replace(" &#10060;", "").replace(" [c]", "") + ", (" + association.citations[0].citation_source_body + ")").replace("a associate", "an associate"));
+          .filter(association => association.biological_relationship.name !== "compared with")
+          .filter(association => association.object.object_tag)
+          .map(association => {
+            const citation = association.citations?.[0]?.citation_source_body || 'No citation';
+            const objectTag = association.object.object_tag.replace(" &#10003;", "").replace(" &#10060;", "").replace(" [c]", "");
+            const relationship = association.biological_relationship.object_label.toLowerCase();
+            const subject = association.subject.object_tag.replace(" &#10003;", "").replace(" &#10060;", "").replace(" [c]", "");
+            return `${objectTag} is a ${relationship} of ${subject}, (${citation})`.replace("a associate", "an associate");
+          });
       });
       
       onMounted(async () => {   
         nextTick();     
-        const baResponse = await api.get(`/biological_associations?${props.baProp}`,
-            {params: {
-              extend: ["object", "subject", "biological_relationship", "taxonomy", "biological_relationship_types", "citations"],
-              per: "1000",
-              token: import.meta.env.VITE_APP_API_TOKEN,
-              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN,
-            }}
-          );
+        const baResponse = await api.get(`/biological_associations`,
+          {params: {
+            taxon_name_id: props.baProp,
+            extend: ["object", "subject", "biological_relationship", "taxonomy", "biological_relationship_types", "citations", "source"],
+            per: "10000",
+            descendants: "true",
+            token: import.meta.env.VITE_APP_API_TOKEN,
+            project_token: import.meta.env.VITE_APP_PROJECT_TOKEN,
+          }}
+        );
         console.log("baProp at the time of the BiologicalAssociations api call is: " + props.baProp)
         let newData = await baResponse.data;
         state.biologicalAssociationsJson = await newData;
       });
       
+      const baReferences = computed(() => {
+        let references = state.biologicalAssociationsJson.flatMap(item => item.citations.map(citation => citation.source.object_tag));
+        return references.sort();
+      });
+      
       return { 
         ...toRefs(state),
-        sortedBiologicalAssociations
+        sortedBiologicalAssociations,
+        baReferences
       };
     }
   }
