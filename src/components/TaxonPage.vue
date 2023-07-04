@@ -1,8 +1,19 @@
 <template v-slot:taxonPage>
+  <div>
+    <span 
+      v-for="(breadcrumb, index) in reversedBreadcrumbs"
+        :key="breadcrumb.id"
+        :class="{ italicizeBreadcrumb: breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' }">
+        <router-link :to="{ name: 'TaxonPage', query: { taxonID: breadcrumb.id }}" @click="reloadTaxonPage">
+          {{ breadcrumb.name }}
+        </router-link>
+      <span v-if="index < breadcrumbsIDs.length - 1"> > </span>
+    </span>
+  </div>
   <div class="row">
     <div class="col-12">
       <h3 v-if="italicized && taxonViewed[0]"><i>{{ taxonViewed[0].cached }}</i> {{ taxonViewed[0].cached_author_year }}</h3>
-      <h3 v-else-if="taxonNamesWithOtusData[0]"><span v-html="taxonNamesWithOtusData[0].cached_html"></span><span>&nbsp;{{ taxonNamesWithOtusData[0].cached_author_year }}</span></h3>
+      <h3 v-else-if="taxonNamesWithOtusData && taxonNamesWithOtusData.length"><span v-html="taxonNamesWithOtusData[0].cached_html"></span><span>&nbsp;{{ taxonNamesWithOtusData[0].cached_author_year }}</span></h3>
     </div>
   </div>
   <br>
@@ -26,12 +37,14 @@
             </div>
           </div>
         </div>
-      </div>
-      <nomenclaturalReferences v-if="nomenclaturalReferencesResults" :nrProp="nomenclaturalReferencesResults"></nomenclaturalReferences>
-      <biological-associations :baProp="otuIDChain"></biological-associations>
     </div>
-    <div class="col-md-4" id="movingDiv">
-      <taxon-distribution :baProp="otuIDChain"></taxon-distribution>
+    <nomenclaturalReferences v-if="nomenclaturalReferencesResults" :nrProp="nomenclaturalReferencesResults"></nomenclaturalReferences>
+    <div class="col-md-8" id="stationaryDiv" v-if="isOtuIDChainPopulated"><biological-associations :baProp="otuIDChain"></biological-associations></div>
+      <div v-else><img src="/spinning-circles.svg" alt="Loading..." width="75"></div>
+    </div>
+    <div class="col-md-4" id="movingDiv" >
+      <div v-if="isOtuIDChainPopulated"><taxon-distribution v-if="isOtuIDChainPopulated" :baProp="otuIDChain"></taxon-distribution></div>
+      <div v-else><img src="/spinning-circles.svg" alt="Loading..." width="75"></div>
     </div>
   </div>
 </template>
@@ -57,10 +70,14 @@
     max-width: 100%;
   }
 }
+
+.italicizeBreadcrumb {
+  font-style: italic;
+}
 </style>
   
 <script>
-  import { onMounted, ref, reactive, computed } from 'vue'
+  import { onMounted, reactive, computed, getCurrentInstance } from 'vue'
   import api from '/api.js'
   import BiologicalAssociations from './BiologicalAssociations.vue'
   import NomenclaturalReferences from "./NomenclaturalReferences.vue"
@@ -86,24 +103,32 @@
         sortedSynonyms: [],
         filteredSynonyms: [],
         newVal: [],
-        synonymItem: "",
-        synonymHtml: "",
+        synonymItem: '',
+        synonymHtml: '',
         synonymTags: [],
         synonymFinal: [],
         synonymSorted: [],
         nomenclaturalReferencesResults: [],
         taxonIDChain: '',
         taxonNamesWithOtusData: [],
+        breadcrumbsData: [],
         taxonNameIDForOTULoop: '',
         otusRetrieved: [],
         showSynonyms: true,
         otuIDChain: '',
         taxonViewed: [],
         synonymUnsorted: [],
+        breadcrumbsIDs: [],
+        breadcrumbsNamerData: [],
+        reversedBreadcrumbs: [],
+        breadcrumbsResponse: [],
+        isOtuIDChainPopulated: false,
+        taxonPageKey: 1
       })
       
       onMounted(async () => {
         const taxonID = route.query.taxonID;
+        
         if(taxonID){
           console.log('taxonID is: ' + taxonID)
           const response = await api.get(`/taxon_names`,
@@ -150,15 +175,24 @@
             console.log('The synonynm finder loops did not find any taxon IDs. Therefore, this step has added the primary taxon ID to taxonIDChain.')
           }
           
-          const taxonNamesWithOtus = await api.get(`/taxon_names`,
-          {params: {
-            taxon_name_id: state.taxonIDChain,
-            extend: ['otus'],
-            token: import.meta.env.VITE_APP_API_TOKEN,
-            project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
-          }});
-          
-          state.taxonNamesWithOtusData = taxonNamesWithOtus.data
+          const combinedTaxonPromise = await Promise.all ([
+            api.get(`/taxon_names`,
+              {params: {
+                taxon_name_id: state.taxonIDChain,
+                extend: ['otus'],
+                token: import.meta.env.VITE_APP_API_TOKEN,
+                project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+            }}),
+            api.get(`/taxon_names/${taxonID}`,
+            {params: {
+              extend: ['ancestor_ids'],
+              token: import.meta.env.VITE_APP_API_TOKEN,
+              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+            }})
+          ]);
+          const [taxonNamesWithOtus, breadcrumbs] = combinedTaxonPromise;
+          state.taxonNamesWithOtusData = taxonNamesWithOtus.data;
+          state.breadcrumbsData = breadcrumbs.data
 
           const synonymIDArray = state.synonyms.map(obj => obj.subject_taxon_name_id);
           console.log("synonymIDArray is: " + synonymIDArray)
@@ -197,7 +231,9 @@
           
           console.log('otuIDChain is: ' + state.otuIDChain);
           
-          state.otuIDS = state.otuIDChain;
+          if(state.otuIDChain.length > 0) {
+            state.isOtuIDChainPopulated = !state.otuIDChecker; 
+          }
 
           const synonymResponse = await api.get(`/taxon_names/${taxonID}/inventory/catalog`,
             {params: {
@@ -211,6 +247,8 @@
           if(state.synonymItem) {
             state.synonymHtml = synonymItem.original_combination.toString();
           };
+          
+          await breadcrumbsNamer();
         };
       });
       
@@ -233,13 +271,30 @@
       
       const resultsExist = computed(() => route.query.taxonID !== undefined && route.query.taxonID !== null);
       
+      const breadcrumbsNamer = async () => {
+        for (const crumb in state.breadcrumbsData.ancestor_ids) {
+            state.breadcrumbsIDs.push(state.breadcrumbsData.ancestor_ids[crumb][0])
+        };
+        const ancestorIDs = state.breadcrumbsIDs.filter(id => id !== undefined);
+        const promises = ancestorIDs.map(id => api.get(`/taxon_names/${id}`,
+          {params: {
+            token: import.meta.env.VITE_APP_API_TOKEN,
+            project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+        }}));
+        state.breadcrumbsResponse = await Promise.all(promises);
+        state.breadcrumbsNamerData = state.breadcrumbsResponse.map(breadcrumbsResponse => breadcrumbsResponse.data);
+        state.reversedBreadcrumbs = [...state.breadcrumbsNamerData].reverse().slice(1);
+      };
+        
       return {
         ...toRefs(state),
         otuIDS, 
         nomenclaturalReferencesResults, 
         italicized, 
-        resultsExist 
+        resultsExist,
+        breadcrumbsNamer,
+        reloadTaxonPage
       };
     }
-  };
+  }
 </script>
