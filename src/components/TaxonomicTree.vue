@@ -149,13 +149,13 @@
         }
         
         const toggleTaxon = async (taxon) => {
-    if (state.openTaxa[taxon.id] === undefined) {
-        await getDescendants(taxon.id);
-    } else {
-        state.openTaxa[taxon.id] = !state.openTaxa[taxon.id];
-    }
-};
-
+          if (state.openTaxa[taxon.id] === undefined) {
+            await getDescendants(taxon.id);
+          }
+          else {
+            state.openTaxa[taxon.id] = !state.openTaxa[taxon.id];
+          }
+        };
         
         const taxonClick = (clickedTaxon) => {
           state.taxonID = state.descendants.find(c => c.id === clickedTaxon);

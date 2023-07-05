@@ -8,7 +8,7 @@
 </template>
 
 <script>
-  import { computed, ref, reactive, watchEffect, onMounted, toRefs } from 'vue';
+  import { computed, ref, reactive, onMounted, toRefs } from 'vue';
   import L from 'leaflet';
   import 'leaflet-providers';
   import api from '/api.js';
