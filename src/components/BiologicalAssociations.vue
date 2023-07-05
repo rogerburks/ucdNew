@@ -1,4 +1,4 @@
-<template v-slot:BiologicalAssociations>
+<template>
   <div class="row" ref="containerOfBiologicalAssociations" name="biologicalAssociationsContainer">
     <div class="col-12 bd-highlight align-items-start" id="biologicalAssociations-list-div" ref="biologicalAssociationsList">
       <button class="btn btn-link" type="button" @click="showBiologicalAssociations = !showBiologicalAssociations" aria-expanded="false">

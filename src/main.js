@@ -12,6 +12,7 @@ import TaxonDistribution from './components/TaxonDistribution.vue';
 import AssociatesSearch from './components/AssociatesSearch.vue';
 import DistributionSearch from './components/DistributionSearch.vue';
 import KeywordSearch from './components/KeywordSearch.vue';
+import TaxonomicTree from './components/TaxonomicTree.vue';
 import './assets/main.css';
 import 'leaflet/dist/leaflet.css';
 import 'bootstrap/dist/css/bootstrap.css';
@@ -81,6 +82,11 @@ const routes = [{
         path: '/keywordSearch',
         name: 'KeywordSearch',
         component: KeywordSearch
+    },
+    {
+        path: '/taxonomicTree',
+        name: 'TaxonomicTree',
+        component: TaxonomicTree
     }
 ];
 const router = createRouter({

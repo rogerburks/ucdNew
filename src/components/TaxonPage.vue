@@ -3,8 +3,8 @@
     <span 
       v-for="(breadcrumb, index) in reversedBreadcrumbs"
         :key="breadcrumb.id"
-        :class="{ italicizeBreadcrumb: breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' }">
-        <router-link :to="{ name: 'TaxonPage', query: { taxonID: breadcrumb.id }}" v-if="breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::GenusGroup::Genus'">
+        :class="{ italicizeBreadcrumb: breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species' }">
+        <router-link :to="{ name: 'TaxonPage', query: { taxonID: breadcrumb.id }}" v-if="breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::GenusGroup::Genus'">
           {{ breadcrumb.name }}
         </router-link>
         <span v-else>
@@ -269,7 +269,7 @@
       
       const italicized = computed(() => {
         if(state.taxonViewed && state.taxonViewed[0]) {
-          return ['NomenclaturalRank::Iczn::GenusGroup::Genus', 'NomenclaturalRank::Iczn::SpeciesGroup::Species'].includes(state.taxonViewed[0].rank_string);
+          return ['NomenclaturalRank::Iczn::GenusGroup::Genus', 'NomenclaturalRank::Iczn::SpeciesGroup::Species', 'NomenclaturalRank::Icn::GenusGroup::Genus', 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species'].includes(state.taxonViewed[0].rank_string);
         };
         return false;
       });

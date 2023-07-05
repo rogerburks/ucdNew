@@ -1,4 +1,4 @@
-<template  v-slot:distributionSearch>     
+<template>     
   <ul v-if="nothingClicked">
     <li><i>Note: be prepared to wait a few seconds if you choose a region with many records.</i></li>
     <li v-for="country in countryData" :key="country.id">

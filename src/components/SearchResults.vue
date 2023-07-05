@@ -1,4 +1,4 @@
-<template v-slot:searchResults>
+<template>
   <div class="row" ref="containerOfResults" name="associatesSearchResultsContainer">
     <div class="col-12 bd-highlight align-items-start" id="results-list-div" ref="resultsList">
     <span id="results-list-span">
@@ -7,7 +7,7 @@
         v-for="(taxonNameItem, index) in srProp" 
           :key="taxonNameItem.id">
           <a style="text-decoration:underline; color: var(--bs-link-color);" @click="displayTaxonPage(srProp[index]), show=!show">
-          <span v-if="srProp[index].rank_string==='NomenclaturalRank::Iczn::GenusGroup::Genus' || srProp[index].rank_string==='NomenclaturalRank::Iczn::SpeciesGroup::Species'"><i>{{ srProp[index].cached }}</i></span><span v-else>{{ srProp[index].cached }}</span> {{ srProp[index].cached_author_year }}</a></li>
+          <span v-if="srProp[index].rank_string==='NomenclaturalRank::Iczn::GenusGroup::Genus' || srProp[index].rank_string==='NomenclaturalRank::Iczn::SpeciesGroup::Species' || srProp[index].rank_string==='NomenclaturalRank::Icn::GenusGroup::Genus' || srProp[index].rank_string==='NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species'"><i>{{ srProp[index].cached }}</i></span><span v-else>{{ srProp[index].cached }}</span> {{ srProp[index].cached_author_year }}</a></li>
       <span v-else>No search results have been returned yet.</span>
     </span>
     </div>

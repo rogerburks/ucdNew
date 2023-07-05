@@ -1,4 +1,4 @@
-<template v-slot:search>
+<template>
   <div class="row" ref="containerOfComponent" v-show="show" name="binomialSearchContainer">
     <fieldset>
       <legend>Search Mode</legend>
