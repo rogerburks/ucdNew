@@ -50,9 +50,9 @@
       margin: 0;
       background-color: #ffffff;
       border: 1px solid #cccccc;
-      border-top: none;
+      border-top: 1px solid #cccccc;
       z-index: 100;
-      min-width: 100%;
+      min-width: 12%;
     }
   
     #dropdown-menu li {

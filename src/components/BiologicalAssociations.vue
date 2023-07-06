@@ -1,5 +1,5 @@
 <template>
-  <div class="row" ref="containerOfBiologicalAssociations" name="biologicalAssociationsContainer">
+  <div v-if="sortedBiologicalAssociations[0]" class="row" ref="containerOfBiologicalAssociations" name="biologicalAssociationsContainer">
     <div class="col-12 bd-highlight align-items-start" id="biologicalAssociations-list-div" ref="biologicalAssociationsList">
       <button class="btn btn-link" type="button" @click="showBiologicalAssociations = !showBiologicalAssociations" aria-expanded="false">
         <font-awesome-icon :icon="showBiologicalAssociations ? 'angle-down' : 'angle-right'" />
@@ -18,6 +18,7 @@
       </div>
     </div>
   </div>
+  <div v-else><img src="/spinning-circles.svg" alt="Loading..." width="75"></div>
   <references :bar-Prop="baReferences"></references>
 </template>
 

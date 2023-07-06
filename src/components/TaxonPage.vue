@@ -52,20 +52,20 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 @media (min-width: 1537px) {
   #stationaryDiv {
     flex: 0 0 64%;
     max-width: 64%;
-    padding-left: 0px;
-    padding-right: 0px;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   #movingDiv {
     flex: 0 0 33.33333%;
     max-width: 33.33333%;
-    padding-left: 0px;
-    padding-right: 0px;
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 
