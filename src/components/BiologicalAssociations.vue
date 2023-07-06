@@ -1,25 +1,27 @@
 <template>
-  <div v-if="sortedBiologicalAssociations[0]" class="row" ref="containerOfBiologicalAssociations" name="biologicalAssociationsContainer">
-    <div class="col-12 bd-highlight align-items-start" id="biologicalAssociations-list-div" ref="biologicalAssociationsList">
-      <button class="btn btn-link" type="button" @click="showBiologicalAssociations = !showBiologicalAssociations" aria-expanded="false">
-        <font-awesome-icon :icon="showBiologicalAssociations ? 'angle-down' : 'angle-right'" />
-        <span v-if="!showBiologicalAssociations"> Show biological associations</span>
-        <span v-else> Biological associations</span>
-      </button>
-      <div id="collapseBiologicalAssociations" v-show="showBiologicalAssociations">
-        <div id = "showIfQuery" v-if="sortedBiologicalAssociations">
-          <ul id="results-list-span">
-            <li style="list-style-type:none" v-for="object_tag in sortedBiologicalAssociations" :key="object_tag" v-html="object_tag"></li>
-          </ul>
-        </div>
-        <div id="showIfNoQuery" v-else>
-          No biological associations have been retrieved.
+  <div v-if="sortedBiologicalAssociations[0]">
+    <div class="row" ref="containerOfBiologicalAssociations" name="biologicalAssociationsContainer">
+      <div class="col-12 bd-highlight align-items-start" id="biologicalAssociations-list-div" ref="biologicalAssociationsList">
+        <button class="btn btn-link" type="button" @click="showBiologicalAssociations = !showBiologicalAssociations" aria-expanded="false">
+          <font-awesome-icon :icon="showBiologicalAssociations ? 'angle-down' : 'angle-right'" />
+          <span v-if="!showBiologicalAssociations"> Show biological associations</span>
+          <span v-else> Biological associations</span>
+        </button>
+        <div id="collapseBiologicalAssociations" v-show="showBiologicalAssociations">
+          <div id = "showIfQuery" v-if="sortedBiologicalAssociations">
+            <ul id="results-list-span">
+              <li style="list-style-type:none" v-for="object_tag in sortedBiologicalAssociations" :key="object_tag" v-html="object_tag"></li>
+            </ul>
+          </div>
+          <div id="showIfNoQuery" v-else>
+            No biological associations have been retrieved.
+          </div>
         </div>
       </div>
     </div>
+    <references :bar-Prop="baReferences"></references>
   </div>
   <div v-else><img src="/spinning-circles.svg" alt="Loading..." width="75"></div>
-  <references :bar-Prop="baReferences"></references>
 </template>
 
 <script>
