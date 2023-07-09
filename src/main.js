@@ -30,16 +30,19 @@ const routes = [{
     {
         path: '/',
         name: 'Home',
+        meta: {title: 'UCD: Home Page'},
         component: HomePage
     },
     {
         path: '/binomialSearch',
         name: 'BinomialSearch',
+        meta: {title: 'UCD: Binomial Search'},
         component: BinomialSearch
     },
     {
         path: '/taxon/:taxonID',
         component: TaxonPage,
+        meta: { title: 'UCD: Taxon Page' },
         props: true
     },
     {
@@ -76,6 +79,7 @@ const routes = [{
     {
         path: '/distributionSearch',
         name: 'DistributionSearch',
+        meta: {title: 'UCD: Browse taxon distribution'},
         component: DistributionSearch
     },
     {
@@ -86,6 +90,7 @@ const routes = [{
     {
         path: '/taxonomicTree',
         name: 'TaxonomicTree',
+        meta: {title: 'UCD: Taxonomic tree'},
         component: TaxonomicTree
     }
 ];
@@ -97,3 +102,7 @@ const app = createApp(App);
 app.use(router);
 app.component('font-awesome-icon', FontAwesomeIcon);
 app.mount('#app');
+router.beforeEach((to, from, next) => {
+    document.title = to.meta.title ? to.meta.title : 'Universal Chalcidoidea Database';
+    next();
+})
