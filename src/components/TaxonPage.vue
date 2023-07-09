@@ -4,7 +4,7 @@
       v-for="(breadcrumb, index) in reversedBreadcrumbs"
         :key="breadcrumb.id"
         :class="{ italicizeBreadcrumb: breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species' }">
-        <router-link :to="{ name: 'TaxonPage', query: { taxonID: breadcrumb.id }}" v-if="breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::GenusGroup::Genus'">
+        <router-link :to="{ name: 'TaxonPage', query: { taxonID: breadcrumb.id }}" v-if="breadcrumb.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::FamilyGroup::Family' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::FamilyGroup::Subfamily' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::FamilyGroup::Tribe' || breadcrumb.rank_string === 'NomenclaturalRank::Iczn::FamilyGroup::Subtribe' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species' || breadcrumb.rank_string === 'NomenclaturalRank::Icn::GenusGroup::Genus'">
           {{ breadcrumb.name }}
         </router-link>
         <span v-else>
@@ -17,7 +17,6 @@
     <div class="col-12">
       <h3 v-if="italicized && taxonViewed[0]"><i>{{ taxonViewed[0].cached }}</i> {{ taxonViewed[0].cached_author_year }}</h3>
       <h3 v-else-if="taxonViewed[0]">{{ taxonViewed[0].cached }} {{ taxonViewed[0].cached_author_year }}</h3>
-      <h3 v-else-if="taxonNamesWithOtusData && taxonNamesWithOtusData.length"><span v-html="taxonNamesWithOtusData[0].cached_html"></span><span>&nbsp;{{ taxonNamesWithOtusData[0].cached_author_year }}</span></h3>
     </div>
   </div>
   <div class="row">
@@ -31,9 +30,12 @@
           </button>
           <div id="collapseSynonyms" v-show="showSynonyms">
             <div id="showIfQuery" v-if="resultsExist">
-              <ul v-if="synonymUnsorted" id="results-list-span">
-                <li style="list-style-type:none" v-for="tag in synonymUnsorted.timeline" :key="tag" v-html="tag.label"></li>
+              <ul v-if="synonymCatalog" id="results-list-span">
+                <li style="list-style-type:none" v-for="tag in synonymCatalog.timeline" :key="tag" v-html="tag.label"></li>
               </ul>
+              <div class="typeInfo" v-show="rankString==='NomenclaturalRank::Iczn::SpeciesGroup::Species' && concatenatedTypeInfo != 'Type information: '">{{ concatenatedTypeInfo }}</div>
+              <div class="typeInfo" v-show="rankString==='NomenclaturalRank::Iczn::GenusGroup::Genus' || rankString==='NomenclaturalRank::Iczn::GenusGroup::Subgenus'">Type species: <router-link :to="{ name: 'TaxonPage', query: { taxonID: typeID }}" v-if="typeID"> <span v-html="concatenatedTypeInfo"></span></router-link></div>
+              <div class="typeInfo" v-show="rankString==='NomenclaturalRank::Iczn::FamilyGroup::Family' || rankString==='NomenclaturalRank::Iczn::FamilyGroup::Subfamily' || rankString==='NomenclaturalRank::Iczn::FamilyGroup::Tribe' || rankString==='NomenclaturalRank::Iczn::FamilyGroup::Subtribe'">Type genus: <router-link :to="{ name: 'TaxonPage', query: { taxonID: typeID }}" v-if="typeID"> <span v-html="concatenatedTypeInfo"></span></router-link></div>
             </div>
             <div id="showIfNoQuery" v-else>
               No search has been made
@@ -79,10 +81,14 @@
 .italicizeBreadcrumb {
   font-style: italic;
 }
+
+.typeInfo {
+  margin-left: calc(var(--bs-gutter-x));
+}
 </style>
   
 <script>
-  import { onMounted, reactive, computed, getCurrentInstance } from 'vue'
+  import { reactive, ref, computed } from 'vue'
   import api from '/api.js'
   import BiologicalAssociations from './BiologicalAssociations.vue'
   import References from "./References.vue"
@@ -101,108 +107,84 @@
     
     setup() {
       const state = reactive({
-        taxonPageApiResults: [],
-        synonymResponse: [],
-        synonyms: [],
-        combinationsResponseSynonyms: [],
-        sortedSynonyms: [],
-        filteredSynonyms: [],
-        newVal: [],
-        synonymItem: '',
-        synonymHtml: '',
-        synonymTags: [],
-        synonymFinal: [],
-        synonymSorted: [],
-        nomenclaturalReferencesResults: [],
-        taxonIDChain: '',
-        taxonNamesWithOtusData: [],
-        breadcrumbsData: [],
-        taxonNameIDForOTULoop: '',
-        otusRetrieved: [],
-        showSynonyms: true,
-        otuIDChain: '',
-        taxonViewed: [],
-        synonymUnsorted: [],
-        breadcrumbsIDs: [],
-        breadcrumbsNamerData: [],
-        reversedBreadcrumbs: [],
-        breadcrumbsResponse: [],
-        isTaxonIDChainPopulated: false,
-        taxonPageKey: 1
+        showSynonyms: true
       })
       
       const route = useRoute();
+      const taxonID = route.query.taxonID;
+      const typeID = ref('');
+      const rankString = ref('');
+      const taxonViewed = ref([]);
+      const concatenatedTypeInfo = ref('');
+      const synonymCatalog = ref([]);
+      const reversedBreadcrumbs = ref([]);
+      const taxonIDChain = ref([]);
+      const isTaxonIDChainPopulated = ref(false);
       
-      onMounted(async () => {
-        const taxonID = route.query.taxonID;
+      const getTaxon = async (taxonIDNumber) => {
+        const response = await api.get(`/taxon_names`,
+            {params: {
+              taxon_name_id: taxonIDNumber,
+              token: import.meta.env.VITE_APP_API_TOKEN,
+              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+        }})
+        if(taxonViewed.value.length === 0) {
+          taxonViewed.value = response.data
+          rankString.value = taxonViewed.value[0].rank_string;
+          
+          const combinedTaxonPromise = Promise.all ([
+              api.get(`/taxon_names`,
+                {params: {
+                  combination_taxon_name_id: [taxonIDNumber],
+                  token: import.meta.env.VITE_APP_API_TOKEN,
+                  project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+              }}),
+              api.get(`/taxon_name_relationships`,
+                {params: {
+                  object_taxon_name_id: taxonIDNumber,
+                  token: import.meta.env.VITE_APP_API_TOKEN,
+                  project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+              }}),
+              api.get(`/taxon_names/${taxonID}`,
+                {params: {
+                  extend: ['ancestor_ids'],
+                  token: import.meta.env.VITE_APP_API_TOKEN,
+                  project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+              }})
+            ]);
+            const [combinationsResponse, relationshipsResponse, breadcrumbs] = await combinedTaxonPromise;
+            const combinationsResponseSynonyms = combinationsResponse.data;
+            const synonyms = relationshipsResponse.data;
+            const breadcrumbsData = breadcrumbs.data;
+            makeSynonyms(synonyms, combinationsResponseSynonyms);
+            breadcrumbsNamer(breadcrumbsData);
+            typeInfo();
+        }
+        else{
+          return await response.data;
+        }
+      };
+      getTaxon(taxonID);
+      
+      const makeSynonyms = async (synonyms, combinationsResponseSynonyms) => {                  
+        for (const taxonName of synonyms) {
+          taxonIDChain.value.push(taxonName.subject_taxon_name_id.toString());
+        };
+          
+        if(combinationsResponseSynonyms[0]){
+          for (const taxonName of combinationsResponseSynonyms){
+            taxonIDChain.value.push(taxonName.id.toString());
+          }
+        };
         
-        if(taxonID){
-          console.log('taxonID is: ' + taxonID)
-          const response = await api.get(`/taxon_names`,
-            {params: {
-              taxon_name_id: [taxonID],
-              validity: 'true',
-              exact: 'true',
-              token: import.meta.env.VITE_APP_API_TOKEN,
-              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
-          }});
-          const combinationsResponse = await api.get(`/taxon_names`,
-            {params: {
-              combination_taxon_name_id: [taxonID],
-              token: import.meta.env.VITE_APP_API_TOKEN,
-              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
-          }});
-          const relationshipsResponse = await api.get(`/taxon_name_relationships`,
-            {params: {
-              object_taxon_name_id: taxonID,
-              token: import.meta.env.VITE_APP_API_TOKEN,
-              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
-          }});
-          
-          state.taxonViewed = response.data
-          state.synonyms = relationshipsResponse.data
-          state.combinationsResponseSynonyms = combinationsResponse.data
+        if(taxonIDChain.length === 0){
+          taxonIDChain.value.push(taxonID);
+        };
 
-          state.synonyms = state.synonyms.filter(x => x.inverse_assignment_method === "iczn_subjective_synonym" || x.inverse_assignment_method === "iczn_misspelling" || x.inverse_assignment_method === "original_species" || x.inverse_assignment_method === "iczn_synonym" || x.inverse_assignment_method === "iczn_invalid");
-          
-          state.taxonIDChain = []
-          for (const taxonName of state.synonyms) {
-            state.taxonIDChain.push(taxonName.subject_taxon_name_id.toString());
-          };
-          console.log('taxonIDChain from relationshipResponse is: ' + state.taxonIDChain);
-          
-          for (const taxonName of state.combinationsResponseSynonyms){
-            state.taxonIDChain.push(taxonName.id.toString());
-          }
-          
-          console.log('taxonIDChain after combinationResponse is: ' + state.taxonIDChain);
-          
-          if(state.taxonIDChain.length === 0){
-            state.taxonIDChain.push(taxonID)
-            console.log('The synonynm finder loops did not find any taxon IDs. Therefore, this step has added the primary taxon ID to taxonIDChain.')
-          }
-          
-          const combinedTaxonPromise = await Promise.all ([
-            api.get(`/taxon_names`,
-              {params: {
-                taxon_name_id: state.taxonIDChain,
-                extend: ['otus'],
-                token: import.meta.env.VITE_APP_API_TOKEN,
-                project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
-            }}),
-            api.get(`/taxon_names/${taxonID}`,
-            {params: {
-              extend: ['ancestor_ids'],
-              token: import.meta.env.VITE_APP_API_TOKEN,
-              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
-            }})
-          ]);
-          const [taxonNamesWithOtus, breadcrumbs] = combinedTaxonPromise;
-          state.taxonNamesWithOtusData = taxonNamesWithOtus.data;
-          state.breadcrumbsData = breadcrumbs.data
+        if(taxonIDChain.value.length > 0){
+          isTaxonIDChainPopulated.value = !isTaxonIDChainPopulated.value; 
+          synonyms = synonyms.filter(x => x.inverse_assignment_method === "iczn_subjective_synonym" || x.inverse_assignment_method === "iczn_misspelling" || x.inverse_assignment_method === "original_species" || x.inverse_assignment_method === "iczn_synonym" || x.inverse_assignment_method === "iczn_invalid");
 
-          const synonymIDArray = state.synonyms.map(obj => obj.subject_taxon_name_id);
-          console.log("synonymIDArray is: " + synonymIDArray)
           const originalCombinationHTML = api.get(`/taxon_names/${taxonID}`,
             {params: {
               extend: ['otus'],
@@ -210,37 +192,7 @@
               project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
           }});
           
-          state.synonymItem = originalCombinationHTML.data;
-          if(state.synonymItem){
-            state.synonymHtml = synonymItem.original_combination.toString();
-          };
-          
-          for (const taxonName of state.taxonNamesWithOtusData) {
-            state.taxonNameIDForOTULoop = taxonName.id.toString();
-            const findOTUResponse = await api.get(`/taxon_names/${state.taxonNameIDForOTULoop}`,
-              {params: {
-                extend: ['otus'],
-                token: import.meta.env.VITE_APP_API_TOKEN,
-                project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
-            }});
-            state.otusRetrieved = findOTUResponse.data;
-            if(state.otusRetrieved) {
-              console.log("the taxonID for this otu loop iteration is: " + state.otusRetrieved.id);
-              for (const otu of state.otusRetrieved.otus) {
-                state.otuIDChain += "&otu_id[]=" + otu.id.toString();
-                console.log("this otu.id is: " + otu.id.toString());
-              }
-            }
-          }
-          if(state.otuIDChain){
-            state.otuIDChain = state.otuIDChain.substring(1);
-          };
-          
-          console.log('otuIDChain is: ' + state.otuIDChain);
-          
-          if(state.taxonIDChain.length > 0) {
-            state.isTaxonIDChainPopulated = !state.isTaxonIDChainPopulated; 
-          }
+          const synonymItem = originalCombinationHTML.data;
 
           const synonymResponse = await api.get(`/taxon_names/${taxonID}/inventory/catalog`,
             {params: {
@@ -248,57 +200,112 @@
               project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
           }});
 
-          state.synonymUnsorted = synonymResponse.data
-          state.nomenclaturalReferencesResults = state.synonymUnsorted.sources
+          synonymCatalog.value = synonymResponse.data
           
-          if(state.synonymItem) {
-            state.synonymHtml = synonymItem.original_combination.toString();
+          if(synonymItem) {
+            synonymHtml = synonymItem.original_combination.toString();
           };
-          
-          await breadcrumbsNamer();
         };
-      });
-      
-      const otuIDS = computed(() => {
-        if(state.otuIDChain) {
-          return state.otuIDChain.split("&otu_id[]=")
-        };
-      });
-      
-      const nomenclaturalReferencesResults = computed(() => state.synonymUnsorted.sources);
+      };
+            
+      const nomenclaturalReferencesResults = computed(() => synonymCatalog.value.sources);
       
       const italicized = computed(() => {
-        if(state.taxonViewed && state.taxonViewed[0]) {
-          return ['NomenclaturalRank::Iczn::GenusGroup::Genus', 'NomenclaturalRank::Iczn::SpeciesGroup::Species', 'NomenclaturalRank::Icn::GenusGroup::Genus', 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species'].includes(state.taxonViewed[0].rank_string);
+        if(taxonViewed.value && taxonViewed.value[0]) {
+          return ['NomenclaturalRank::Iczn::GenusGroup::Genus', 'NomenclaturalRank::Iczn::SpeciesGroup::Species', 'NomenclaturalRank::Icn::GenusGroup::Genus', 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species'].includes(taxonViewed.value[0].rank_string);
         };
         return false;
       });
       
-      const resultsExist = computed(() => route.query.taxonID !== undefined && route.query.taxonID !== null);
-      
-      const breadcrumbsNamer = async () => {
-        for (const crumb in state.breadcrumbsData.ancestor_ids) {
-            state.breadcrumbsIDs.push(state.breadcrumbsData.ancestor_ids[crumb][0])
+      const breadcrumbsNamer = async (breadcrumbsData) => {
+        const breadcrumbsIDs = [];
+        for (const crumb in breadcrumbsData.ancestor_ids) {
+            breadcrumbsIDs.push(breadcrumbsData.ancestor_ids[crumb][0])
         };
-        const ancestorIDs = state.breadcrumbsIDs.filter(id => id !== undefined);
+        const ancestorIDs = breadcrumbsIDs.filter(id => id !== undefined);
         const promises = ancestorIDs.map(id => api.get(`/taxon_names/${id}`,
           {params: {
             token: import.meta.env.VITE_APP_API_TOKEN,
             project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
         }}));
-        state.breadcrumbsResponse = await Promise.all(promises);
-        state.breadcrumbsNamerData = state.breadcrumbsResponse.map(breadcrumbsResponse => breadcrumbsResponse.data);
-        state.reversedBreadcrumbs = [...state.breadcrumbsNamerData].reverse().slice(1);
+        const breadcrumbsResponse = await Promise.all(promises);
+        const breadcrumbsNamerData = breadcrumbsResponse.map(breadcrumbsResponse => breadcrumbsResponse.data);
+        reversedBreadcrumbs.value = [...breadcrumbsNamerData].reverse().slice(1);
       };
+      
+      const typeInfo = async () => {
+        if(rankString.value === "NomenclaturalRank::Iczn::SpeciesGroup::Species"){
+          const response = await api.get(`/data_attributes`,
+            {params: {
+              attribute_subject_id: taxonID,
+              token: import.meta.env.VITE_APP_API_TOKEN,
+              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+          }});
+          const dataAttributesResults = response.data;
+          
+          const extractedValues = dataAttributesResults
+            .filter(item => ['Species:PrimType', 'Species:TypeSex', 'Coll:Depository'].includes(item.predicate_name))
+            .map(item => item.value === 'LT' ? 'Lectotype' : item.value === 'HT' ? 'Holotype' : item.value === 'ST' ? 'Syntypes' : item.value === 'NT' ? 'Neotype' : item.value === 'F' ? 'Female' : item.value === 'M' ? 'Male' : item.value, controlled_vocabulary_term_id => controlled_vocabulary_term_id);
+          concatenatedTypeInfo.value = "Type information: " + extractedValues.join(", ");
+        }
+        else if(rankString.value === "NomenclaturalRank::Iczn::GenusGroup::Genus" || rankString.value === "NomenclaturalRank::Iczn::GenusGroup::Subgenus"){
+          const response = await api.get(`/taxon_name_relationships`,
+            {params: {
+              object_taxon_name_id: taxonID,
+              token: import.meta.env.VITE_APP_API_TOKEN,
+              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+          }});
+          const dataAttributesResults = response.data;
+          
+          const extractedValues = dataAttributesResults
+            .find(item => item.assignment_method.includes('type_of_genus'));
+          if (extractedValues) {
+            const subjectTaxonNameId = extractedValues.subject_taxon_name_id.toString();
+            const typeSpecies = await getTaxon(subjectTaxonNameId);
+            typeID.value = typeSpecies[0].id;
+            concatenatedTypeInfo.value = typeSpecies[0].cached_original_combination_html + " " + typeSpecies[0].cached_author_year;
+          };
+        }
+        else if(rankString.value === "NomenclaturalRank::Iczn::FamilyGroup::Family" || rankString.value === "NomenclaturalRank::Iczn::FamilyGroup::Subfamily" || rankString.value === "NomenclaturalRank::Iczn::FamilyGroup::Tribe" || rankString.value === "NomenclaturalRank::Iczn::FamilyGroup::Subtribe"){
+          const response = await api.get(`/taxon_name_relationships`,
+            {params: {
+              object_taxon_name_id: taxonID,
+              token: import.meta.env.VITE_APP_API_TOKEN,
+              project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+          }});
+          const dataAttributesResults = response.data;
+          
+          const extractedValues = dataAttributesResults
+            .find(item => item.assignment_method.includes('type_of_family'));
+          if (extractedValues) {
+            const subjectTaxonNameId = extractedValues.subject_taxon_name_id.toString();
+            const typeGenus = await getTaxon(subjectTaxonNameId);
+            typeID.value = typeGenus[0].id;
+            concatenatedTypeInfo.value = typeGenus[0].cached_original_combination_html + " " + typeGenus[0].cached_author_year;;
+          };
+        }
+      };
+      
+      const resultsExist = computed(() => taxonID !== undefined && taxonID !== null);
         
       return {
         ...toRefs(state),
-        otuIDS, 
         nomenclaturalReferencesResults, 
         italicized, 
         resultsExist,
         breadcrumbsNamer,
-        route
+        route,
+        taxonID,
+        makeSynonyms,
+        getTaxon,
+        typeID,
+        rankString,
+        taxonViewed,
+        concatenatedTypeInfo,
+        synonymCatalog,
+        reversedBreadcrumbs,
+        taxonIDChain,
+        isTaxonIDChainPopulated
       };
     }
   }

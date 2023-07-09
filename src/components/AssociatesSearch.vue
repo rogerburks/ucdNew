@@ -121,7 +121,6 @@
           }
         };
         
-        //Cannot filter otu autocomplete by kingdom or nomenclatural code for now, and so I have commented out parts that restrict this search to non-animals
         const useInputTerms = async () => {
           try { 
             if(state.searchMode === "regular") {
@@ -131,7 +130,7 @@
                 const response = await api.get(`/taxon_names`,
                   {params: {
                     name: state.genus + " " + state.species,
-                    //rank: 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species',
+                    rank: 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species',
                     validity: 'true',
                     exact: 'true',
                     token: import.meta.env.VITE_APP_API_TOKEN,
@@ -146,7 +145,7 @@
                   api.get(`/taxon_names`,
                     {params: {
                       name: state.genus,
-                      //rank: 'NomenclaturalRank::Icn::GenusGroup::Genus',
+                      rank: 'NomenclaturalRank::Icn::GenusGroup::Genus',
                       validity: 'true',
                       token: import.meta.env.VITE_APP_API_TOKEN,
                       project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
@@ -154,7 +153,7 @@
                   api.get(`/taxon_names`,
                     {params: {
                       name: state.genus,
-                      //rank: 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species',
+                      rank: 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species',
                       validity: 'true',
                       token: import.meta.env.VITE_APP_API_TOKEN,
                       project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
@@ -170,7 +169,7 @@
                 const response = await api.get(`/taxon_names`,
                   {params: {
                     name: state.species,
-                    //rank: 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species',
+                    rank: 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species',
                     validity: 'true',
                     token: import.meta.env.VITE_APP_API_TOKEN,
                     project_token: import.meta.env.VITE_APP_PROJECT_TOKEN

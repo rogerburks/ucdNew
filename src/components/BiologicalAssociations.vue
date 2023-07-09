@@ -13,14 +13,12 @@
               <li style="list-style-type:none" v-for="object_tag in sortedBiologicalAssociations" :key="object_tag" v-html="object_tag"></li>
             </ul>
           </div>
-          <div id="showIfNoQuery" v-else>
-            No biological associations have been retrieved.
-          </div>
         </div>
       </div>
     </div>
     <references :bar-Prop="baReferences"></references>
   </div>
+  <div class="row" v-else-if="sortedBiologicalAssociations.length === 0">No biological associations are databased for this taxon name.</div>
   <div v-else><img src="/spinning-circles.svg" alt="Loading..." width="75"></div>
 </template>
 
