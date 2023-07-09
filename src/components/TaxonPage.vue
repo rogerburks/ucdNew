@@ -33,9 +33,9 @@
               <ul v-if="synonymCatalog" id="results-list-span">
                 <li style="list-style-type:none" v-for="tag in synonymCatalog.timeline" :key="tag" v-html="tag.label"></li>
               </ul>
-              <div class="typeInfo" v-show="rankString==='NomenclaturalRank::Iczn::SpeciesGroup::Species' && concatenatedTypeInfo != 'Type information: '">{{ concatenatedTypeInfo }}</div>
-              <div class="typeInfo" v-show="rankString==='NomenclaturalRank::Iczn::GenusGroup::Genus' || rankString==='NomenclaturalRank::Iczn::GenusGroup::Subgenus'">Type species: <router-link :to="{ name: 'TaxonPage', query: { taxonID: typeID }}" v-if="typeID"> <span v-html="concatenatedTypeInfo"></span></router-link></div>
-              <div class="typeInfo" v-show="rankString==='NomenclaturalRank::Iczn::FamilyGroup::Family' || rankString==='NomenclaturalRank::Iczn::FamilyGroup::Subfamily' || rankString==='NomenclaturalRank::Iczn::FamilyGroup::Tribe' || rankString==='NomenclaturalRank::Iczn::FamilyGroup::Subtribe'">Type genus: <router-link :to="{ name: 'TaxonPage', query: { taxonID: typeID }}" v-if="typeID"> <span v-html="concatenatedTypeInfo"></span></router-link></div>
+              <div class="indent" v-show="rankString==='NomenclaturalRank::Iczn::SpeciesGroup::Species' && concatenatedTypeInfo != 'Type information: '">{{ concatenatedTypeInfo }}</div>
+              <div class="indent" v-show="rankString==='NomenclaturalRank::Iczn::GenusGroup::Genus' || rankString==='NomenclaturalRank::Iczn::GenusGroup::Subgenus'">Type species: <router-link :to="{ name: 'TaxonPage', query: { taxonID: typeID }}" v-if="typeID"> <span v-html="concatenatedTypeInfo"></span></router-link></div>
+              <div class="indent" v-show="rankString==='NomenclaturalRank::Iczn::FamilyGroup::Family' || rankString==='NomenclaturalRank::Iczn::FamilyGroup::Subfamily' || rankString==='NomenclaturalRank::Iczn::FamilyGroup::Tribe' || rankString==='NomenclaturalRank::Iczn::FamilyGroup::Subtribe'">Type genus: <router-link :to="{ name: 'TaxonPage', query: { taxonID: typeID }}" v-if="typeID"> <span v-html="concatenatedTypeInfo"></span></router-link></div>
             </div>
             <div id="showIfNoQuery" v-else>
               No search has been made
@@ -76,14 +76,6 @@
     flex: max-content;
     max-width: 100%;
   }
-}
-
-.italicizeBreadcrumb {
-  font-style: italic;
-}
-
-.typeInfo {
-  margin-left: calc(var(--bs-gutter-x));
 }
 </style>
   

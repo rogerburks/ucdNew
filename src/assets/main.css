@@ -1,21 +1,42 @@
 #app {
-    margin: 0 auto;
-    margin-left: 3rem;
-    padding: 2rem;
-    font-weight: normal;
+  margin: 0 auto;
+  margin-left: 3rem;
+  padding: 2rem;
+  font-weight: normal;
 }
 
 a,
 .green {
-    text-decoration: none;
-    color: hsla(160, 100%, 37%, 1);
-    transition: 0.4s;
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+}
+
+.indent {
+  margin-left: calc(var(--bs-gutter-x));
+}
+
+.italicizeBreadcrumb {
+  font-style: italic;
+}
+
+.dropdown input:focus + .dropdown-menu {
+  display: block;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.nav-link.router-link-active {
+  background-color: #ccc;
+  color: #000;
 }
 
 @media (hover: hover) {
-    a:hover {
-        background-color: hsla(160, 100%, 37%, 0.2);
-    }
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
 }
 
 @media (min-width: 1024px) {}

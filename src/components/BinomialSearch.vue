@@ -40,10 +40,6 @@
 </template>
 
 <style scoped>
-  .dropdown {
-    position: relative;
-  }
-
   #dropdown-menu {
     position: absolute;
     top: 100%;
@@ -65,10 +61,6 @@
 
   #dropdown-menu li:hover {
     background-color: #d6c20d;
-  }
-
-  .dropdown input:focus + .dropdown-menu {
-    display: block;
   }
   
   #binomial-search-input {

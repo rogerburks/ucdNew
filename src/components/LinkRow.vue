@@ -21,10 +21,3 @@
         </ul>
     </div>
 </template>
-
-<style scoped>
-  .nav-link.router-link-active {
-    background-color: #ccc;
-    color: #000;
-  }
-</style>

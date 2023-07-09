@@ -18,7 +18,7 @@
     </div>
     <references :bar-Prop="baReferences"></references>
   </div>
-  <div class="row" v-else-if="sortedBiologicalAssociations.length === 0">No biological associations are databased for this taxon name.</div>
+  <div class="indent" v-else-if="sortedBiologicalAssociations.length === 0">No biological associations are databased for this taxon name.</div>
   <div v-else><img src="/spinning-circles.svg" alt="Loading..." width="75"></div>
 </template>
 
