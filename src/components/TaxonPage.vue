@@ -30,8 +30,8 @@
           </button>
           <div id="collapseSynonyms" v-show="showSynonyms">
             <div id="showIfQuery" v-if="resultsExist">
-              <ul v-if="synonymUnsorted" id="results-list-span">
-                <li style="list-style-type:none" v-for="tag in synonymUnsorted.timeline" :key="tag" v-html="tag.label"></li>
+              <ul v-if="synonymArray" id="results-list-span">
+                <li style="list-style-type:none" v-for="tag in synonymArray.timeline" :key="tag" v-html="tag.label"></li>
               </ul>
               <div class="indent" v-show="rankString==='NomenclaturalRank::Iczn::SpeciesGroup::Species' && concatenatedTypeInfo != 'Type information: '">{{ concatenatedTypeInfo }}</div>
               <div class="indent" v-show="rankString==='NomenclaturalRank::Iczn::GenusGroup::Genus' || rankString==='NomenclaturalRank::Iczn::GenusGroup::Subgenus'">Type species: <router-link :to="{ name: 'TaxonPage', query: { taxonID: typeID }}" v-if="typeID"> <span v-html="concatenatedTypeInfo"></span></router-link></div>
@@ -110,9 +110,20 @@
       const typeID = ref('');
       const taxonViewed = ref([]);
       const reversedBreadcrumbs = ref([]);
-      const synonymUnsorted = ref([]);
+      const synonymArray = ref([]);
       const isTaxonIDChainPopulated = ref(false);
       const taxonIDChain =  ref([]);
+      
+      const nomenclaturalReferencesResults = computed(() => synonymArray.value.sources);
+      
+      const italicized = computed(() => {
+        if(taxonViewed.value && taxonViewed.value[0]) {
+          return ['NomenclaturalRank::Iczn::GenusGroup::Genus', 'NomenclaturalRank::Iczn::SpeciesGroup::Species', 'NomenclaturalRank::Icn::GenusGroup::Genus', 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species'].includes(taxonViewed.value[0].rank_string);
+        };
+        return false;
+      });
+        
+      const resultsExist = computed(() => route.query.taxonID !== undefined && route.query.taxonID !== null);
       
       onMounted(async () => {
         await getTaxon(taxonID);
@@ -164,7 +175,6 @@
       const makeSynonyms = async (synonyms, combinationsResponseSynonyms) => {
         synonyms = synonyms.filter(x => x.inverse_assignment_method === "iczn_subjective_synonym" || x.inverse_assignment_method === "iczn_misspelling" || x.inverse_assignment_method === "original_species" || x.inverse_assignment_method === "iczn_synonym" || x.inverse_assignment_method === "iczn_invalid");
         
-        taxonIDChain.value = []
         for (const taxonName of synonyms) {
           taxonIDChain.value.push(taxonName.subject_taxon_name_id.toString());
         };
@@ -187,7 +197,7 @@
             project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
         }});
 
-        synonymUnsorted.value = synonymResponse.data
+        synonymArray.value = synonymResponse.data
       };
       
       const typeInfo = async () => {
@@ -259,17 +269,6 @@
         reversedBreadcrumbs.value = [...breadcrumbsNamerData].reverse().slice(1);
       };
         
-      const nomenclaturalReferencesResults = computed(() => synonymUnsorted.value.sources);
-      
-      const italicized = computed(() => {
-        if(taxonViewed.value && taxonViewed.value[0]) {
-          return ['NomenclaturalRank::Iczn::GenusGroup::Genus', 'NomenclaturalRank::Iczn::SpeciesGroup::Species', 'NomenclaturalRank::Icn::GenusGroup::Genus', 'NomenclaturalRank::Icn::SpeciesAndInfraspeciesGroup::Species'].includes(taxonViewed.value[0].rank_string);
-        };
-        return false;
-      });
-        
-      const resultsExist = computed(() => route.query.taxonID !== undefined && route.query.taxonID !== null);
-        
       return {
         ...toRefs(state),
         route,
@@ -284,7 +283,7 @@
         taxonViewed,
         makeSynonyms,
         reversedBreadcrumbs,
-        synonymUnsorted,
+        synonymArray,
         isTaxonIDChainPopulated,
         taxonIDChain
       };
