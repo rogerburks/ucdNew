@@ -9,7 +9,7 @@
         <label style="padding-left: 2px;" for="autocomplete-search">Autocomplete (wait for results to appear under search field)</label>
       </div>
     </fieldset>
-    <div v-if="searchMode === 'regular'" class="col-6" ref="containerOfInputGroup">
+    <div v-if="searchMode === 'regular'" class="col-8" ref="containerOfInputGroup">
       <div class="input-group mb-3 align-items-start" id="binomial-search-group">
         <span v-show="!family" class="input-group-text" id="genus-input-label">genus</span>
         <input v-show="!family" type="text" class="form-control" id="binomial-search-input" aria-describedby="genus-input" v-model="genus" @keyup.enter="useInputTerms($event)" />
