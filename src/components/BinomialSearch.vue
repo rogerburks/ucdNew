@@ -64,7 +64,8 @@
   }
   
   #binomial-search-input {
-    max-width: 480px;
+    min-width: 480px;
+    max-width: 1080px;
   }
 </style>
   
