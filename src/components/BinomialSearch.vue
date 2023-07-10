@@ -113,8 +113,7 @@
             }})
           state.autocompleteResults = response.data
         } catch (error) {
-          console.error(`An error occurred when calling fetchAutocompleteResults: ${error.message}`)
-          console.error(error.stack)
+          console.error(`An error occurred when using the nomenclatural search component: ${error.message}`)
         }
       };
       
@@ -197,8 +196,7 @@
             
           }
         } catch (error) {
-          console.error(`An error occurred when calling useInputTerms: ${error.message}`)
-          console.error(error.stack);
+          console.error(`An error occurred when using the nomenclatural search component: ${error.message}`)
         }
       };
       

@@ -4,9 +4,10 @@
       <div class="col-12 bd-highlight align-items-start" id="biologicalAssociations-list-div" ref="biologicalAssociationsList">
         <button class="btn btn-link" type="button" @click="showBiologicalAssociations = !showBiologicalAssociations" aria-expanded="false">
           <font-awesome-icon :icon="showBiologicalAssociations ? 'angle-down' : 'angle-right'" />
-          <span v-if="!showBiologicalAssociations"> Show biological associations</span>
-          <span v-else> Biological associations</span>
+          <span v-show="!showBiologicalAssociations"> Show biological associations</span>
+          <span v-show="showBiologicalAssociations"> Biological associations</span>
         </button>
+        <button class="btn btn-outline-primary" v-show="showBiologicalAssociations" @click="downloadJSON">download (JSON)</button>  <button class="btn btn-outline-primary" v-show="showBiologicalAssociations" @click="downloadTSV">download (TSV)</button>
         <div id="collapseBiologicalAssociations" v-show="showBiologicalAssociations">
           <div id = "showIfQuery" v-if="sortedBiologicalAssociations">
             <ul id="results-list-span">
@@ -23,7 +24,7 @@
 </template>
 
 <script>
-  import { computed, reactive, toRefs, onMounted, nextTick } from 'vue'
+  import { computed, reactive, ref, toRefs, onMounted, nextTick } from 'vue'
   import api from '/api.js'
   import References from './References.vue';
 
@@ -45,6 +46,8 @@
         baReferences: []
       });
       
+      const jsonToDownload = ref(null);
+      
       const sortedBiologicalAssociations = computed(() => {
         return state.biologicalAssociationsJson
           .filter(association => association.biological_relationship.name !== "compared with")
@@ -58,8 +61,20 @@
           });
       });
       
+      const baReferences = computed(() => {
+        let references = state.biologicalAssociationsJson.flatMap(item => item.citations.map(citation => citation.source.object_tag));
+        jsonToDownload.value["Biological association references"] = references;
+        return references.sort();
+      });
+      
       onMounted(async () => {   
-        nextTick();     
+        nextTick();
+        
+        jsonToDownload.value = {
+          "Biological association data": [],
+          "Biological association references": []
+        };
+        
         const baResponse = await api.get(`/biological_associations`,
           {params: {
             taxon_name_id: props.baProp,
@@ -70,20 +85,71 @@
             project_token: import.meta.env.VITE_APP_PROJECT_TOKEN,
           }}
         );
-        console.log("baProp at the time of the BiologicalAssociations api call is: " + props.baProp)
         let newData = await baResponse.data;
         state.biologicalAssociationsJson = await newData;
+        jsonToDownload.value["Biological association data"] = state.biologicalAssociationsJson;
       });
       
-      const baReferences = computed(() => {
-        let references = state.biologicalAssociationsJson.flatMap(item => item.citations.map(citation => citation.source.object_tag));
-        return references.sort();
-      });
+      const downloadJSON = () => {
+        const blob = new Blob([JSON.stringify(jsonToDownload.value)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'biologicalAssociations.json';
+        link.click();
+        
+        URL.revokeObjectURL(url);
+      }
+      
+      function flattenObject(ob) {
+        var toReturn = {};
+        
+        for (var i in ob) {
+            if (!ob.hasOwnProperty(i)) continue;
+            
+            if ((typeof ob[i]) == 'object' && ob[i] !== null) {
+                var flatObject = flattenObject(ob[i]);
+                for (var x in flatObject) {
+                    if (!flatObject.hasOwnProperty(x)) continue;
+                    
+                    toReturn[i + '.' + x] = flatObject[x];
+                }
+            } else {
+                toReturn[i] = ob[i];
+            }
+        }
+        return toReturn;
+      };
+      
+      function objectToTabDelimited(obj) {
+        let fields = Object.keys(obj);
+        let tsvData = fields.map(fieldName => `${fieldName}\t${obj[fieldName]}`);
+        return tsvData.join('\r\n');
+      };
+      
+      const downloadTSV = () => {      
+        let flatObject = flattenObject(jsonToDownload.value);
+        let tsvData = objectToTabDelimited(flatObject);
+                
+        const blob = new Blob([tsvData], {type: 'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'biologicalAssociations.tsv';
+        link.click();
+        
+        URL.revokeObjectURL(url);
+      }
       
       return { 
         ...toRefs(state),
         sortedBiologicalAssociations,
-        baReferences
+        baReferences,
+        downloadJSON,
+        flattenObject,
+        objectToTabDelimited,
+        downloadTSV,
+        jsonToDownload
       };
     }
   }

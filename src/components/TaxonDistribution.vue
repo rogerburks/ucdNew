@@ -41,48 +41,53 @@
 
         return Array.from(uniqueCountries).sort();
       });
+      
+      const adReferences = computed(() => {
+        let references = state.taxonDistributionsJson.flatMap(item => item.citations.map(citation => citation.source.name));
+        return references.sort();
+      });
+      
+      onMounted(async () => {
+        await fetchTaxonDistributions();
+      });
 
       const initializeMap = async () => {
-        if (!document.getElementById('map')) {
-          console.error("Map container not found.");
-          return;
-        }
-        else {
-          console.log("The function was at least called");
-        }
+        try {    
+          map.value = L.map('map').setView([50, 0], 1);
   
-        map.value = L.map('map').setView([50, 0], 1);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>', 
+            subdomains: 'abcd',
+          }).addTo(map.value);
+  
+          const geoJsonLayer = L.geoJSON(null, {
+            style: {
+              fillColor: 'orange', // Fill color for highlighted countries
+              fillOpacity: 0.5, // Fill opacity
+              color: 'black', // Border color
+              weight: 1, // Border weight
+            },
+          }).addTo(map.value);
+          
+          state.isLoading = false;
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>', 
-          subdomains: 'abcd',
-        }).addTo(map.value);
+          const geojsonArray = state.taxonDistributionsJson.map((item) => {
+            if (item.geographic_area.shape?.geometry) {
+              return item.geographic_area.shape.geometry;
+            }
+            return null;
+          });
 
-        const geoJsonLayer = L.geoJSON(null, {
-          style: {
-            fillColor: 'orange', // Fill color for highlighted countries
-            fillOpacity: 0.5, // Fill opacity
-            color: 'black', // Border color
-            weight: 1, // Border weight
-          },
-        }).addTo(map.value);
-        
-        state.isLoading = false;
+          geoJsonLayer.clearLayers();
 
-        const geojsonArray = state.taxonDistributionsJson.map((item) => {
-          if (item.geographic_area.shape?.geometry) {
-            return item.geographic_area.shape.geometry;
-          }
-          return null;
-        });
-
-        geoJsonLayer.clearLayers();
-
-        geojsonArray.forEach((item) => {
-          if (item) {
-            geoJsonLayer.addData(item);
-          }
-        });
+          geojsonArray.forEach((item) => {
+            if (item) {
+              geoJsonLayer.addData(item);
+            }
+          });
+        } catch (error) {
+          console.log("Reload if you do not see the map. The map sent this error message, although map errors do not seem to be fatal in many cases: " + error.message)
+        };
       };
 
       const fetchTaxonDistributions = async () => {
@@ -106,15 +111,6 @@
           initializeMap();
         }
       };
-
-      onMounted(async () => {
-        await fetchTaxonDistributions();
-      });
-      
-      const adReferences = computed(() => {
-        let references = state.taxonDistributionsJson.flatMap(item => item.citations.map(citation => citation.source.name));
-        return references.sort();
-      });
 
       return {
         ...toRefs(state),

@@ -25,9 +25,10 @@
         <div class="col-12 bd-highlight align-items-start" id="results-list-div" ref="resultsList">
           <button class="btn btn-link" type="button" @click="showSynonyms = !showSynonyms" aria-expanded="false">
             <font-awesome-icon :icon="showSynonyms ? 'angle-down' : 'angle-right'" />
-            <span v-if="!showSynonyms"> Show taxonomic history</span>
-            <span v-else> Taxonomic history</span>
+            <span v-show="!showSynonyms"> Show taxonomic history</span>
+            <span v-show="showSynonyms"> Taxonomic history</span>
           </button>
+          <button class="btn btn-outline-primary" v-show="showSynonyms" @click="downloadJSON">download (JSON)</button>  <button class="btn btn-outline-primary" v-show="showSynonyms" @click="downloadTSV">download (TSV)</button> 
           <div id="collapseSynonyms" v-show="showSynonyms">
             <div id="showIfQuery" v-if="resultsExist">
               <ul v-if="synonymArray" id="results-list-span">
@@ -44,9 +45,12 @@
         </div>
     </div>
     <references v-if="nomenclaturalReferencesResults" :nr-Prop="nomenclaturalReferencesResults"></references>
-    <div v-if="isTaxonIDChainPopulated"><biological-associations :ba-Prop="taxonIDChain"></biological-associations></div>
+    <div v-if="isTaxonIDChainPopulated">
+      <biological-associations :ba-Prop="taxonIDChain"></biological-associations>
+    </div>
       <div v-else><img src="/spinning-circles.svg" alt="Loading..." width="75"></div>
     </div>
+    
     <div class="col-md-4" id="movingDiv" v-if="taxonViewed[0] && (taxonViewed[0].rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || taxonViewed[0].rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species')">
       <div v-if="isTaxonIDChainPopulated"><taxon-distribution v-if="isTaxonIDChainPopulated" :ba-Prop="taxonIDChain"></taxon-distribution></div>
       <div v-else><img src="/spinning-circles.svg" alt="Loading..." width="75"></div>
@@ -80,13 +84,12 @@
 </style>
   
 <script>
-  import { onMounted, reactive, computed, ref } from 'vue'
+  import { onMounted, reactive, computed, ref, toRefs } from 'vue'
   import api from '/api.js'
   import BiologicalAssociations from './BiologicalAssociations.vue'
   import References from "./References.vue"
   import TaxonDistribution from "./TaxonDistribution.vue"
   import { useRoute } from 'vue-router';
-  import { toRefs } from '@vue/reactivity';
   
   export default {
     name: 'TaxonPage',
@@ -113,6 +116,7 @@
       const synonymArray = ref([]);
       const isTaxonIDChainPopulated = ref(false);
       const taxonIDChain =  ref([]);
+      const jsonToDownload = ref(null);
       
       const nomenclaturalReferencesResults = computed(() => synonymArray.value.sources);
       
@@ -126,7 +130,25 @@
       const resultsExist = computed(() => route.query.taxonID !== undefined && route.query.taxonID !== null);
       
       onMounted(async () => {
+        jsonToDownload.value = {
+          "Nomenclature data": {
+            "Taxon viewed": [],
+            "Synonyms from taxon name combinations": [],
+            "Synonyms from taxon name relationships": []
+          },
+          "Additional data": [],
+          "Nomenclature references": [],
+        };
+        
         await getTaxon(taxonID);
+        
+        if (taxonViewed.value && taxonViewed.value[0] && taxonViewed.value[0].cached) {
+          document.title = "UCD: " + taxonViewed.value[0].cached;
+        };
+        
+        if(nomenclaturalReferencesResults){
+          jsonToDownload.value["Nomenclature references"] = nomenclaturalReferencesResults.value;
+        }
       });
       
       const getTaxon = async (taxonID) => {
@@ -163,6 +185,11 @@
           const combinationsResponseSynonyms = await combinationsResponse.data;
           const synonyms = await relationshipsResponse.data;
           const breadcrumbsData = await breadcrumbs.data;
+          
+          jsonToDownload.value["Nomenclature data"]["Taxon viewed"] = taxonViewed.value;
+          jsonToDownload.value["Nomenclature data"]["Synonyms from taxon name combinations"] = combinationsResponseSynonyms;
+          jsonToDownload.value["Nomenclature data"]["Synonyms from taxon name relationships"] = synonyms;
+          
           await breadcrumbsNamer(breadcrumbsData);
           await typeInfo();
           await makeSynonyms(synonyms, combinationsResponseSynonyms);
@@ -209,6 +236,7 @@
               project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
           }});
           const dataAttributesResults = response.data;
+          jsonToDownload.value["Additional data"] = await dataAttributesResults;
           
           const extractedValues = dataAttributesResults
             .filter(item => ['Species:PrimType', 'Species:TypeSex', 'Coll:Depository'].includes(item.predicate_name))
@@ -223,6 +251,7 @@
               project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
           }});
           const dataAttributesResults = response.data;
+          jsonToDownload.value["Additional data"] = await dataAttributesResults;
           
           const extractedValues = dataAttributesResults
             .find(item => item.assignment_method.includes('type_of_genus'));
@@ -240,15 +269,16 @@
               token: import.meta.env.VITE_APP_API_TOKEN,
               project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
           }});
-          const dataAttributesResults = response.data;
+          const dataAttributesResults = await response.data;
+          jsonToDownload.value["Additional data"] = await dataAttributesResults;
           
-          const extractedValues = dataAttributesResults
+          const extractedValues = await dataAttributesResults
             .find(item => item.assignment_method.includes('type_of_family'));
           if (extractedValues) {
             const subjectTaxonNameId = extractedValues.subject_taxon_name_id.toString();
             const typeGenus = await getTaxon(subjectTaxonNameId);
             typeID.value = typeGenus[0].id;
-            concatenatedTypeInfo.value = typeGenus[0].cached_original_combination_html + " " + typeGenus[0].cached_author_year;;
+            concatenatedTypeInfo.value = typeGenus[0].cached_original_combination_html + " " + typeGenus[0].cached_author_year;
           };
         }
       };
@@ -268,7 +298,58 @@
         const breadcrumbsNamerData = breadcrumbsResponse.map(breadcrumbsResponse => breadcrumbsResponse.data);
         reversedBreadcrumbs.value = [...breadcrumbsNamerData].reverse().slice(1);
       };
+      
+      const downloadJSON = () => {
+        const blob = new Blob([JSON.stringify(jsonToDownload.value)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'taxonPage.json';
+        link.click();
         
+        URL.revokeObjectURL(url);
+      }
+      
+      function flattenObject(ob) {
+        var toReturn = {};
+        
+        for (var i in ob) {
+            if (!ob.hasOwnProperty(i)) continue;
+            
+            if ((typeof ob[i]) == 'object' && ob[i] !== null) {
+                var flatObject = flattenObject(ob[i]);
+                for (var x in flatObject) {
+                    if (!flatObject.hasOwnProperty(x)) continue;
+                    
+                    toReturn[i + '.' + x] = flatObject[x];
+                }
+            } else {
+                toReturn[i] = ob[i];
+            }
+        }
+        return toReturn;
+      };
+      
+      function objectToTabDelimited(obj) {
+        let fields = Object.keys(obj);
+        let tsvData = fields.map(fieldName => `${fieldName}\t${obj[fieldName]}`);
+        return tsvData.join('\r\n');
+      };
+      
+      const downloadTSV = () => {      
+        let flatObject = flattenObject(jsonToDownload.value);
+        let tsvData = objectToTabDelimited(flatObject);
+                
+        const blob = new Blob([tsvData], {type: 'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'taxonPage.tsv';
+        link.click();
+        
+        URL.revokeObjectURL(url);
+      }
+      
       return {
         ...toRefs(state),
         route,
@@ -285,7 +366,12 @@
         reversedBreadcrumbs,
         synonymArray,
         isTaxonIDChainPopulated,
-        taxonIDChain
+        taxonIDChain,
+        jsonToDownload,
+        downloadJSON,
+        downloadTSV,
+        objectToTabDelimited,
+        flattenObject,
       };
     }
   }
