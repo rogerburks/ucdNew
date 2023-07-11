@@ -3,10 +3,14 @@
       <fieldset>
         <legend>Search Mode</legend>
         <div>
-          <input type="radio" id="regular-search" value="regular" v-model="searchMode" />
-          <label style="padding-left: 2px; padding-right: 15px;" for="regular-search">Regular search</label>
-          <input type="radio" id="autocomplete-search" value="autocomplete" v-model="searchMode" />
-          <label style="padding-left: 2px;" for="autocomplete-search">Autocomplete (wait for results to appear under search field)</label>
+          <div>
+            <input type="radio" id="autocomplete-search" value="autocomplete" v-model="searchMode" />
+            <label style="padding-left: 2px; padding-right: 15px;" for="autocomplete-search">Autocomplete search (wait for results to appear)</label>
+          </div>
+          <div>
+            <input type="radio" id="regular-search" value="regular" v-model="searchMode" />
+            <label style="padding-left: 2px;" for="regular-search">Regular search</label>
+          </div>
         </div>
       </fieldset>
       <div v-if="searchMode === 'regular'" class="col-8" ref="containerOfInputGroup">
@@ -82,7 +86,7 @@
       setup() {
         const state = reactive({
           show: true,
-          searchMode: "regular",
+          searchMode: "autocomplete",
           genus: '',
           species: '',
           apiResults: [],

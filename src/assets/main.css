@@ -1,8 +1,7 @@
 #app {
-  margin: 0 auto;
-  margin-left: 3rem;
-  padding: 2rem;
   font-weight: normal;
+  padding-left: 1em;
+  padding-right: 2px;
 }
 
 a,
@@ -28,6 +27,11 @@ a,
   position: relative;
 }
 
+#results-list-span {
+  padding-left: 3em;
+  text-indent: -1em;
+}
+
 .nav-link.router-link-active {
   background-color: #ccc;
   color: #000;
@@ -39,4 +43,9 @@ a,
   }
 }
 
-@media (min-width: 1024px) {}
+@media (max-width: 720px) {
+  #app {
+    padding-left: 5px;
+    padding-right: 2px;
+  }
+}

@@ -67,9 +67,5 @@ header {
     background-repeat: repeat-x;
     background-position: left;
   }
-    
-  #app {
-    padding: 0%
-  }
 }
 </style>

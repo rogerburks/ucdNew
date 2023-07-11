@@ -4,28 +4,57 @@
     <li id="superfamily"><b><a>Chalcidoidea</a></b></li>
     <li v-for="taxon in (trList[0] && trList[0].children ? trList[0].children : [])" :key="taxon.id">
       <button @click="toggleTaxon(taxon)" id="treeButton">
-        <span v-if="openTaxa[taxon.id] === true">-</span>
-        <span v-else-if="openTaxa[taxon.id] === false">+</span>
-        <span v-else>+</span>
+        <span v-show="openTaxa[taxon.id] === true">-</span>
+        <span v-show="!openTaxa[taxon.id] === true">+</span>
       </button>
       <a @click="displayTaxonPage(taxon.id)" id="higherTaxon">
-        {{ taxon.name }}
+        <span v-if="taxon.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || taxon.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species'">
+          <i>{{ taxon.name }}</i>
+        </span>
+        <span v-else>
+          {{ taxon.name }}
+        </span>
       </a>
-      <ul v-if="openTaxa[taxon.id] === true && taxon.children">
+      <ul v-show="openTaxa[taxon.id] === true && taxon.children">
         <li v-for="subfamily in taxon.children" :key="subfamily.id">
-          <button @click="toggleTaxon(subfamily)" id="treeButton">
-            <span v-if="openTaxa[subfamily.id] === true">-</span>
-            <span v-else-if="openTaxa[subfamily.id] === false">+</span>
-            <span v-else>+</span>
+          <button v-show="subfamily.rank_string!='NomenclaturalRank::Iczn::SpeciesGroup::Species'" @click="toggleTaxon(subfamily)" id="treeButton">
+            <span v-show="openTaxa[subfamily.id] === true">-</span>
+            <span v-show="!openTaxa[subfamily.id] === true">+</span>
           </button>
           <a @click="displayTaxonPage(subfamily.id), nothingClicked = !nothingClicked" style="text-decoration:underline; color: var(--bs-link-color);" id="higherTaxon">
-            {{ subfamily.name }}
+            <span v-if="subfamily.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || subfamily.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species'">
+              <i>{{ subfamily.name }}</i>
+            </span>
+            <span v-else>
+              {{ subfamily.name }}
+            </span>
           </a>
-          <ul v-if="openTaxa[subfamily.id] === true && subfamily.children">
+          <ul v-show="openTaxa[subfamily.id] === true && subfamily.children">
             <li v-for="genus in subfamily.children" :key="genus.id">
+              <button v-show="genus.rank_string!='NomenclaturalRank::Iczn::SpeciesGroup::Species'" @click="toggleTaxon(genus)" id="treeButton">
+                <span v-show="openTaxa[genus.id] === true">-</span>
+                <span v-show="!openTaxa[genus.id] === true">+</span>
+              </button>
               <a @click="displayTaxonPage(genus.id), nothingClicked = !nothingClicked" style="text-decoration:underline; color: var(--bs-link-color);" id="higherTaxon">
-                <i> {{ genus.name }} </i>
+                <span v-if="genus.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || genus.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species'">
+                  <i> {{ genus.name }} </i>
+                </span>
+                <span v-else>
+                  {{ genus.name }}
+                </span>
               </a>
+              <ul v-show="openTaxa[genus.id] === true && genus.children">
+                <li v-for="species in genus.children" :key="species.id">
+                  <a @click="displayTaxonPage(species.id), nothingClicked = !nothingClicked" id="species">
+                    <span v-if="species.rank_string === 'NomenclaturalRank::Iczn::GenusGroup::Genus' || species.rank_string === 'NomenclaturalRank::Iczn::SpeciesGroup::Species'">
+                      <i> {{ species.name }} </i>
+                    </span>
+                    <span v-else>
+                      {{ species.name }}
+                    </span>
+                  </a>
+                </li>
+              </ul>
             </li>
           </ul>
         </li>
@@ -58,7 +87,9 @@
   }
   
   #species {
-    padding-left: 5px;
+    padding-left: 10px;
+    text-decoration:underline; 
+    color: var(--bs-link-color)
   }
   
   #higherTaxon {
@@ -131,13 +162,13 @@
         state.openTaxa[taxonID] = true;
       };
       
-      const findTaxon = (id, taxons) => {
-        for (let i = 0; i < taxons.length; i++) {
-          if (taxons[i].id === id) {
-            return taxons[i];
+      const findTaxon = (id, taxa) => {
+        for (let i = 0; i < taxa.length; i++) {
+          if (taxa[i].id === id) {
+            return taxa[i];
           }
-          if (taxons[i].children) {
-            const found = findTaxon(id, taxons[i].children);
+          if (taxa[i].children) {
+            const found = findTaxon(id, taxa[i].children);
             if (found) {
               return found;
             }

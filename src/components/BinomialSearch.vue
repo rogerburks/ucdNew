@@ -3,24 +3,15 @@
     <fieldset>
       <legend>Search Mode</legend>
       <div>
-        <input type="radio" id="regular-search" value="regular" v-model="searchMode" />
-        <label style="padding-left: 2px; padding-right: 15px;" for="regular-search">Regular search (higher taxa mutually exclusive)</label>
         <input type="radio" id="autocomplete-search" value="autocomplete" v-model="searchMode" />
-        <label style="padding-left: 2px;" for="autocomplete-search">Autocomplete (wait for results to appear under search field)</label>
+        <label style="padding-left: 2px; padding-right: 15px;" for="autocomplete-search">Autocomplete search (wait for results to appear)</label>
+      </div>
+      <div>
+        <input type="radio" id="regular-search" value="regular" v-model="searchMode" />
+        <label style="padding-left: 2px;" for="regular-search">Regular search (higher taxa mutually exclusive)</label>
       </div>
     </fieldset>
-    <div v-if="searchMode === 'regular'" class="col-8" ref="containerOfInputGroup">
-      <div class="input-group mb-3 align-items-start" id="binomial-search-group">
-        <span v-show="!family" class="input-group-text" id="genus-input-label">genus</span>
-        <input v-show="!family" type="text" class="form-control" id="binomial-search-input" aria-describedby="genus-input" v-model="genus" @keyup.enter="useInputTerms($event)" />
-        <span  v-show="!family" class="input-group-text" id="species-input-label">species</span>
-        <input  v-show="!family" type="text" class="form-control" id="binomial-search-input" aria-describedby="species-input" v-model="species" @keyup.enter="useInputTerms($event)" />
-        <span v-show="!genus && !species" class="input-group-text" id="species-input-label">higher taxa</span>
-        <input v-show="!genus && !species" type="text" class="form-control" id="binomial-search-input" aria-describedby="species-input" v-model="family" @keyup.enter="useInputTerms($event)" />
-        <button class="btn btn-outline-secondary" type="button" id="binomial-search-button" @click="useInputTerms($event)">search</button>
-      </div>
-    </div>
-    <div v-if="searchMode === 'autocomplete'" class="col-12" ref="containerOfInputGroup">
+    <div v-if="searchMode === 'autocomplete'" class="col-12">
       <div class="dropdown">
         <input type="text" v-model="searchTerm" @input="fetchAutocompleteResults" @select="handleSelection" @focus="showDropdown = true" />
         <ul id="dropdown-menu" ref="autocompleteList" v-show="showDropdown">
@@ -33,8 +24,18 @@
         </ul>
       </div>
     </div>
+    <div v-if="searchMode === 'regular'" class="col-12 col-lg-8">
+      <div class="input-group mb-3 align-items-start" id="binomial-search-group">
+        <span v-show="!family" class="input-group-text">genus</span>
+        <input v-show="!family" type="text" class="form-control" id="binomial-search-input" aria-describedby="genus-input" v-model="genus" @keyup.enter="useInputTerms($event)" />
+        <span  v-show="!family" class="input-group-text">species</span>
+        <input  v-show="!family" type="text" class="form-control" id="binomial-search-input" aria-describedby="species-input" v-model="species" @keyup.enter="useInputTerms($event)" />
+        <span v-show="!genus && !species" class="input-group-text">higher</span>
+        <input v-show="!genus && !species" type="text" class="form-control" id="binomial-search-input" aria-describedby="species-input" v-model="family" @keyup.enter="useInputTerms($event)" />
+        <button class="btn btn-outline-secondary" type="button" @click="useInputTerms($event)">search</button>
+      </div>
+    </div>
   </div>
-  <br>
   <searchResults v-show="!blankResults" :srProp="apiResults"></searchResults>
   <span v-show="blankResults">No results were returned</span>
 </template>
@@ -85,7 +86,7 @@
     setup() {
       const state = reactive({
         show: true,
-        searchMode: "regular",
+        searchMode: "autocomplete",
         genus: '',
         species: '',
         family: '',

@@ -1,7 +1,7 @@
 <template>
   <div class="row" ref="containerOfResults" name="associatesSearchResultsContainer">
     <div class="col-12 bd-highlight align-items-start" id="results-list-div" ref="resultsList">
-    <span id="results-list-span">
+    <span class="search-results">
       <li style="list-style-type:none" 
         v-if="srProp" 
         v-for="(taxonNameItem, index) in srProp" 
@@ -13,6 +13,12 @@
     </div>
   </div>
 </template>
+
+<style>
+  #results-list-div {
+    padding-left: 2em;
+  }
+</style>
 
 <script>
   import { reactive } from '@vue/runtime-core'

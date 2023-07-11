@@ -26,12 +26,7 @@
   </div>
 </template>
 
-<style scoped>
-  #results-list-span {
-    padding-left: 3em;
-    text-indent: -1em;
-  }
-  
+<style scoped> 
   #showIfNoQuery{
     padding-left: 2em;
   }
