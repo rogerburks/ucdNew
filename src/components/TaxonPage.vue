@@ -22,13 +22,13 @@
   <div class="row">
     <div class="col-md-8" id="stationaryDiv">
       <div ref="containerOfSynonyms" name="taxonPageSynonymsContainer">
-        <div class="col-12 bd-highlight align-items-start" id="results-list-div" ref="resultsList">
+        <div class="col-12 bd-highlight align-items-start" ref="resultsList">
           <button class="btn btn-link" type="button" @click="showSynonyms = !showSynonyms" aria-expanded="false">
             <font-awesome-icon :icon="showSynonyms ? 'angle-down' : 'angle-right'" />
             <span v-show="!showSynonyms"> Show taxonomic history</span>
             <span v-show="showSynonyms"> Taxonomic history</span>
           </button>
-          <button class="btn btn-outline-primary" v-show="showSynonyms" @click="downloadJSON">download (JSON)</button>  <button class="btn btn-outline-primary" v-show="showSynonyms" @click="downloadTSV">download (TSV)</button> 
+          <button class="btn btn-outline-primary" id="outline-button" v-show="showSynonyms" @click="downloadJSON">download (JSON)</button>  <button class="btn btn-outline-primary" id="outline-button" v-show="showSynonyms" @click="downloadTSV">download (TSV)</button> 
           <div id="collapseSynonyms" v-show="showSynonyms">
             <div id="showIfQuery" v-if="resultsExist">
               <ul v-if="synonymArray" id="results-list-span">
