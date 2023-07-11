@@ -1,4 +1,4 @@
-# ucdNew
+# Universal Chalcidoidea Database
 
 This is the official project for making a public-facing page for the new Universal Chalcidoidea Database, using Taxonworks to host and manage the data. The front end is created with Vue.js with Vite and Bootstrap.
 
@@ -10,6 +10,8 @@ This is the official project for making a public-facing page for the new Univers
    
    `VITE_APP_API_TOKEN=`[your api token for the Universal Chalcidoidea Database in Taxonworks]
    `VITE_APP_PROJECT_TOKEN=adhBi59dc13U7RxbgNE5HQ`
+
+5. The `.env` file should go in the root directory of the project, same location as `vite.config.js`.
 
 **What stage are we at?**
 I regard this as beta build. 
