@@ -59,6 +59,10 @@
 </template>
 
 <style scoped>
+h3{
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
 @media (min-width: 1537px) {
   #stationaryDiv {
     flex: 0 0 64%;
