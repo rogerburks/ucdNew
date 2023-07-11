@@ -7,7 +7,7 @@ This is the official project for making a public-facing page for the new Univers
 2. Have Vue.js 3 installed
 3. Have Vite installed
 4. Make an `.env` file using Vite syntax for the API calls. The contents should look like what is below. These statements cannot contain spaces or any punctuation aside from `=` and `_`.
-   `VITE_APP_API_TOKEN=``your api token for the Universal Chalcidoidea Database in Taxonworks`
+   `VITE_APP_API_TOKEN=`[your api token for the Universal Chalcidoidea Database in Taxonworks]
    `VITE_APP_PROJECT_TOKEN=adhBi59dc13U7RxbgNE5HQ`
 
 **What stage are we at?**
