@@ -15,8 +15,11 @@
   </div>
   <div class="row">
     <div class="col-12">
-      <h3 v-if="italicized && taxonViewed[0]"><i>{{ taxonViewed[0].cached }}</i> {{ taxonViewed[0].cached_author_year }}</h3>
-      <h3 v-else-if="taxonViewed[0]">{{ taxonViewed[0].cached }} {{ taxonViewed[0].cached_author_year }}</h3>
+      <h3 v-if="italicized && taxonViewed[0] && taxonViewed[0].cached_is_valid===true"><i>{{ taxonViewed[0].cached }}</i> {{ taxonViewed[0].cached_author_year }}</h3>
+      <h3 v-else-if="taxonViewed[0] && taxonViewed[0].cached_is_valid===true">{{ taxonViewed[0].cached }} {{ taxonViewed[0].cached_author_year }}</h3>
+      <span v-else-if="italicized && taxonViewed[0] && validified[0] && taxonViewed[0].cached_is_valid===false"><h3><i>{{ taxonViewed[0].cached }}</i> {{ taxonViewed[0].cached_author_year }}</h3><h5>Invalid name. Valid name: <router-link :to="{ name: 'TaxonPage', query: { taxonID: validified[0].id }}"><i>{{ validified[0].cached }}</i> {{ validified[0].cached_author_year }}</router-link></h5></span>
+      <span v-else-if="taxonViewed[0] && validified[0] && taxonViewed[0].cached_is_valid===false"><h3></h3><h5>Invalid name. Valid name: <i>{{ validified[0].cached }}</i> {{ validified[0].cached_author_year }}</h5></span>
+      <span v-else></span>
     </div>
   </div>
   <div class="row">
@@ -106,7 +109,8 @@ h3{
     
     setup() {
       const state = reactive({
-        showSynonyms: true
+        showSynonyms: true,
+        validified: []
       })
       
       const route = useRoute();
@@ -183,12 +187,20 @@ h3{
                 extend: ['ancestor_ids'],
                 token: import.meta.env.VITE_APP_API_TOKEN,
                 project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
+            }}),
+            api.get(`/taxon_names/`,
+                    {params: {
+                      taxon_name_id: taxonID,
+                      validify: true,
+                      token: import.meta.env.VITE_APP_API_TOKEN,
+                      project_token: import.meta.env.VITE_APP_PROJECT_TOKEN
             }})
           ]);
-          const [combinationsResponse, relationshipsResponse, breadcrumbs] = await combinedTaxonPromise;
+          const [combinationsResponse, relationshipsResponse, breadcrumbs, validify] = await combinedTaxonPromise;
           const combinationsResponseSynonyms = await combinationsResponse.data;
           const synonyms = await relationshipsResponse.data;
           const breadcrumbsData = await breadcrumbs.data;
+          state.validified = await validify.data;
           
           jsonToDownload.value["Nomenclature data"]["Taxon viewed"] = taxonViewed.value;
           jsonToDownload.value["Nomenclature data"]["Synonyms from taxon name combinations"] = combinationsResponseSynonyms;
