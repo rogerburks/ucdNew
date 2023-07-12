@@ -5,10 +5,7 @@
     const route = useRoute();
     const taxonID = route.params.taxonID;
 
-    // Now you can use `taxonID` to make an API call or for whatever else you need.
-
     return {
-      // Remember to return anything you want to use in your template.
       taxonID
     };
   }
@@ -24,6 +21,8 @@
     <p><strong>History of the database:</strong> The Universal Chalcidoidea Database (UCD) contains original citations for all 31,000  taxonomic names made available within the Chalcidoidea. It also includes a comprehensive list of the various generic combinations and misspellings that have been used in the literature. In all nearly 50,000 different combinations and spellings are recorded. All names are supported by a citation of the published source from where they were obtained as are all taxonomic and nomenclatural acts noted within the database. Also included are over 120,000 host/associate records (including associations with food plants of the hosts) and more than 140,000 distribution records. The latter can be used to provide regional lists of Chalcidoidea.</p>
     
     <p>The UCD has its roots in a taxonomic card catalog compiled and maintained until about 1969 by the "indexing section" of the Department of Entomology at The Natural History Museum, London. Soon after joining the staff of the department John Noyes undertook to update and improve on this catalog and add a comprehensive bibliography of works on the superfamily. The conversion of the card catalog into an electronic database was started in August 1991. It was made publically available through the UCD website by the Natural History Museum, London, with the last data update in 2019. The database was transferred to a new host: TaxonWorks, which provides the API used to build this site. The new UCD curator platform has been enhanced and now updated by multiple individuals from a number of different institutions worldwide.</p>
+    
+    <p>UCD content is licensed under a <a href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution License</a>. We encourage use of UCD images. In print, each image must include attribution to its photographer, the specimen code of the image, and "from www.ucd.chalcid.org" in each figure caption. For websites, images must include photographer attribution and be clearly identified as coming from www.ucd.chalcid.org, with a backward link to the respective source page.</p>
   </div>
 </template>
 
